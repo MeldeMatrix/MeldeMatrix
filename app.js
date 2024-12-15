@@ -40,6 +40,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
 
+        if (!email || !password) {
+            alert("Bitte E-Mail und Passwort eingeben.");
+            return;
+        }
+
         try {
             await signInWithEmailAndPassword(auth, email, password);
             alert("Erfolgreich eingeloggt");
@@ -53,6 +58,11 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("register-button").addEventListener("click", async () => {
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
+
+        if (!email || !password) {
+            alert("Bitte E-Mail und Passwort eingeben.");
+            return;
+        }
 
         try {
             await createUserWithEmailAndPassword(auth, email, password);
@@ -89,7 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                             (punkt) =>
                                                 `<li>${punkt.id}: ${
                                                     punkt.geprüft
-                                                        ? ✔️ Geprüft"
+                                                        ? "✔️ Geprüft"
                                                         : "❌ Nicht geprüft"
                                                 }</li>`
                                         )
