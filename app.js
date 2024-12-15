@@ -1,7 +1,7 @@
 // Firebase SDK Imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
-import { getFirestore, collection, query, where, getDocs, doc, setDoc, updateDoc, FieldValue } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -20,23 +20,18 @@ const db = getFirestore(app);
 
 document.addEventListener("DOMContentLoaded", () => {
     const authSection = document.getElementById("auth-section");
-    const searchSection = document.getElementById("search-section");
-    const createAnlageSection = document.getElementById("create-anlage-section");
     const dataSection = document.getElementById("data-section");
     const anlagenContainer = document.getElementById("anlagen-container");
-    const searchButton = document.getElementById("search-button");
-    const createButton = document.getElementById("create-button");
-    const createAnlageButton = document.getElementById("create-anlage-button");
-    const cancelCreateAnlageButton = document.getElementById("cancel-create-anlage");
 
     // Monitor Auth State
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             authSection.style.display = "none";
-            searchSection.style.display = "block"; // Zeigt das Suchfeld an
+            dataSection.style.display = "block";
+            await loadAnlagen();
         } else {
             authSection.style.display = "block";
-            searchSection.style.display = "none";
+            dataSection.style.display = "none";
         }
     });
 
@@ -44,11 +39,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("login-button").addEventListener("click", async () => {
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
-
-        if (!email || !password) {
-            alert("Bitte E-Mail und Passwort eingeben.");
-            return;
-        }
 
         try {
             await signInWithEmailAndPassword(auth, email, password);
@@ -64,11 +54,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
 
-        if (!email || !password) {
-            alert("Bitte E-Mail und Passwort eingeben.");
-            return;
-        }
-
         try {
             await createUserWithEmailAndPassword(auth, email, password);
             alert("Registrierung erfolgreich");
@@ -78,150 +63,165 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Search for Anlage by ID or Name
-    searchButton.addEventListener("click", async () => {
-        const searchQuery = document.getElementById("search-field").value.trim();
-        if (!searchQuery) {
-            alert("Bitte geben Sie eine ID oder einen Namen ein.");
-            return;
-        }
+    // Function to Load Anlagen
+    async function loadAnlagen() {
+        try {
+            const querySnapshot = await getDocs(collection(db, "anlagen"));
+            anlagenContainer.innerHTML = ""; // Clear previous data
 
-        // Firestore query to search by ID or name
-        const q = query(
-            collection(db, "anlagen"),
-            where("name", "==", searchQuery) // Filter nach Name
-        );
+            querySnapshot.forEach((doc) => {
+                const anlage = doc.data();
+                const anlageDiv = document.createElement("div");
+                anlageDiv.className = "anlage";
 
-        const querySnapshot = await getDocs(q);
-        if (querySnapshot.empty) {
-            alert("Keine Anlage gefunden.");
-            return;
-        }
-
-        // Wenn ein Treffer gefunden wird, zeigen wir die Details an
-        querySnapshot.forEach(docSnapshot => {
-            const anlage = docSnapshot.data();
-            displayAnlageDetails(anlage);
-        });
-    });
-
-    // Display Anlage details and its Meldegruppen
-    async function displayAnlageDetails(anlage) {
-        dataSection.style.display = "block";
-        searchSection.style.display = "none";
-
-        anlagenContainer.innerHTML = `
-            <h3>${anlage.name} (ID: ${anlage.id})</h3>
-            <div class="grid-container">
-                ${anlage.meldegruppen
-                    .map((gruppe, index) => `
-                        <div class="grid-item">
-                            <h4>${gruppe.name}</h4>
-                            <ul>
-                                ${gruppe.meldepunkte
-                                    .map((punkt) => `
-                                        <li>
-                                            <button class="check-button" data-id="${punkt.id}" data-gruppe="${gruppe.name}">
-                                                ${punkt.geprüft ? "✔️ Geprüft" : "❌ Nicht geprüft"}
-                                            </button>
-                                        </li>
-                                    `)
-                                    .join("")}
-                            </ul>
-                        </div>
-                    `)
-                    .join("")}
-            </div>
-        `;
-
-        // Attach event listeners to check buttons
-        const checkButtons = document.querySelectorAll(".check-button");
-        checkButtons.forEach(button => {
-            button.addEventListener("click", async (e) => {
-                const punktId = e.target.dataset.id;
-                const gruppeName = e.target.dataset.gruppe;
-
-                // Toggle check status and update timestamp
-                const timestamp = new Date();
-
-                // Update Firestore document
-                const anlageRef = doc(db, "anlagen", anlage.id);
-                const meldegruppe = anlage.meldegruppen.find(g => g.name === gruppeName);
-                const meldepunkt = meldegruppe.meldepunkte.find(p => p.id === parseInt(punktId));
-
-                meldepunkt.geprüft = !meldepunkt.geprüft;
-                meldepunkt.geprüftAm = timestamp;
-
-                try {
-                    await updateDoc(anlageRef, {
-                        meldegruppen: anlage.meldegruppen
-                    });
-                    alert("Status aktualisiert!");
-                    displayAnlageDetails(anlage); // Refresh the display
-                } catch (error) {
-                    console.error("Fehler beim Aktualisieren:", error);
-                    alert("Fehler beim Aktualisieren des Status.");
-                }
+                anlageDiv.innerHTML = `
+                    <h3>${anlage.name}</h3>
+                    <p>ID: ${anlage.id}</p>
+                    <button class="view-button" data-id="${anlage.id}">Anlage anzeigen</button>
+                `;
+                anlagenContainer.appendChild(anlageDiv);
             });
-        });
+        } catch (error) {
+            console.error("Fehler beim Laden der Anlagen:", error);
+            alert("Fehler beim Laden der Anlagen");
+        }
     }
 
-    // Button to create a new Anlage
-    createButton.addEventListener("click", () => {
-        searchSection.style.display = "none";
-        createAnlageSection.style.display = "block"; // Zeigt das Erstellungsformular an
-    });
+    // Function to Create a New Anlage
+    async function createAnlage(name) {
+        const timestamp = new Date();
 
-    // Cancel create Anlage
-    cancelCreateAnlageButton.addEventListener("click", () => {
-        createAnlageSection.style.display = "none";
-        searchSection.style.display = "block";
-    });
-
-    // Create new Anlage
-    createAnlageButton.addEventListener("click", async () => {
-        const anlageName = document.getElementById("new-anlage-name").value.trim();
-
-        if (!anlageName) {
-            alert("Bitte einen Namen für die Anlage eingeben.");
-            return;
-        }
-
-        const newAnlage = {
-            name: anlageName,
-            id: Date.now().toString(), // Using a timestamp as ID
-            meldegruppen: createMeldegruppen() // Automatisch 200 Meldegruppen anlegen
-        };
-
-        try {
-            await setDoc(doc(db, "anlagen", newAnlage.id), newAnlage);
-            alert("Anlage erfolgreich erstellt!");
-            displayAnlageDetails(newAnlage);
-            createAnlageSection.style.display = "none";
-            searchSection.style.display = "block";
-        } catch (error) {
-            console.error("Fehler beim Erstellen der Anlage:", error);
-            alert("Fehler beim Erstellen der Anlage.");
-        }
-    });
-
-    // Function to create 200 Meldegruppen with 32 Meldepunkte each
-    function createMeldegruppen() {
         const meldegruppen = [];
-        for (let i = 1; i <= 200; i++) {
+        for (let i = 1; i <= 20; i++) { // Erstellen von 20 Meldegruppen
             const meldepunkte = [];
-            for (let j = 1; j <= 32; j++) {
+            for (let j = 1; j <= 32; j++) { // Erstellen von 32 Meldepunkten pro Gruppe
                 meldepunkte.push({
                     id: j,
                     geprüft: false,
                     geprüftAm: null
                 });
             }
+
             meldegruppen.push({
-                name: `Gruppe ${i}`,
+                name: `Meldegruppe ${i}`,
                 meldepunkte: meldepunkte
             });
         }
-        return meldegruppen;
+
+        const anlage = {
+            id: Date.now(), // Erstellen einer eindeutigen ID basierend auf der aktuellen Zeit
+            name: name,
+            meldegruppen: meldegruppen,
+            erstelltAm: timestamp
+        };
+
+        try {
+            await setDoc(doc(db, "anlagen", String(anlage.id)), anlage);
+            alert("Anlage erfolgreich erstellt");
+            loadAnlagen(); // Liste der Anlagen neu laden
+        } catch (error) {
+            console.error("Fehler beim Erstellen der Anlage:", error);
+            alert("Fehler beim Erstellen der Anlage");
+        }
     }
+
+    // Event listener for creating a new Anlage
+    document.getElementById("create-anlage-button").addEventListener("click", async () => {
+        const anlagenName = prompt("Bitte geben Sie den Namen der neuen Anlage ein:");
+        if (anlagenName) {
+            await createAnlage(anlagenName);
+        }
+    });
+
+    // Event listener to view an Anlage's details
+    anlagenContainer.addEventListener("click", async (e) => {
+        if (e.target && e.target.classList.contains("view-button")) {
+            const anlageId = e.target.getAttribute("data-id");
+            await displayAnlageDetails(anlageId);
+        }
+    });
+
+    // Display details for a selected Anlage
+    async function displayAnlageDetails(anlageId) {
+        const anlageRef = doc(db, "anlagen", anlageId);
+        const docSnap = await getDoc(anlageRef);
+
+        if (docSnap.exists()) {
+            const anlage = docSnap.data();
+            const anlageContainer = document.getElementById("anlage-details-container");
+            anlageContainer.innerHTML = `<h3>${anlage.name}</h3>`;
+
+            anlage.meldegruppen.forEach((gruppe) => {
+                const groupDiv = document.createElement("div");
+                groupDiv.classList.add("gruppe");
+                groupDiv.innerHTML = `<h4>${gruppe.name}</h4><div class="punkte-container"></div>`;
+
+                gruppe.meldepunkte.forEach((punkt) => {
+                    const punktDiv = document.createElement("div");
+                    punktDiv.classList.add("punkt");
+                    punktDiv.innerHTML = `
+                        <p>ID: ${punkt.id} - Status: ${punkt.geprüft ? "✔️ Geprüft" : "❌ Nicht geprüft"}</p>
+                        <button class="check-button" data-id="${punkt.id}" data-gruppe="${gruppe.name}">
+                            ${punkt.geprüft ? "Status zurücksetzen" : "Als geprüft markieren"}
+                        </button>
+                    `;
+                    groupDiv.querySelector(".punkte-container").appendChild(punktDiv);
+                });
+
+                anlageContainer.appendChild(groupDiv);
+            });
+
+            // Show the details section
+            document.getElementById("anlage-details-section").style.display = "block";
+        } else {
+            console.log("Anlage nicht gefunden");
+        }
+    }
+
+    // Function to Update Meldepunkt Status
+    async function updateMeldepunktStatus(anlageId, gruppeName, punktId) {
+        const timestamp = new Date();
+        const anlageRef = doc(db, "anlagen", anlageId);
+
+        // Hole die Anlage-Daten
+        const anlageSnap = await getDoc(anlageRef);
+        const anlage = anlageSnap.data();
+
+        // Suche nach der richtigen Meldegruppe und Meldepunkt
+        const meldegruppeIndex = anlage.meldegruppen.findIndex(gruppe => gruppe.name === gruppeName);
+        const meldepunktIndex = anlage.meldegruppen[meldegruppeIndex].meldepunkte.findIndex(punkt => punkt.id === parseInt(punktId));
+
+        if (meldegruppeIndex === -1 || meldepunktIndex === -1) {
+            console.error("Meldegruppe oder Meldepunkt nicht gefunden!");
+            return;
+        }
+
+        // Toggle den geprüft-Status
+        const meldepunkt = anlage.meldegruppen[meldegruppeIndex].meldepunkte[meldepunktIndex];
+        meldepunkt.geprüft = !meldepunkt.geprüft;
+        meldepunkt.geprüftAm = meldepunkt.geprüft ? timestamp : null;
+
+        // Aktualisieren Sie das gesamte meldegruppen Array in Firestore
+        try {
+            await updateDoc(anlageRef, {
+                meldegruppen: anlage.meldegruppen
+            });
+            alert("Status aktualisiert!");
+            displayAnlageDetails(anlageId); // Details neu anzeigen
+        } catch (error) {
+            console.error("Fehler beim Aktualisieren des Status:", error);
+            alert("Fehler beim Aktualisieren des Status.");
+        }
+    }
+
+    // Event listener to handle checking/unchecking Meldepunkte
+    document.getElementById("anlage-details-container").addEventListener("click", async (e) => {
+        if (e.target && e.target.classList.contains("check-button")) {
+            const punktId = e.target.getAttribute("data-id");
+            const gruppeName = e.target.getAttribute("data-gruppe");
+            const anlageId = document.querySelector("h3").textContent;
+
+            await updateMeldepunktStatus(anlageId, gruppeName, punktId);
+        }
+    });
 });
