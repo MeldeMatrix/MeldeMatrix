@@ -148,9 +148,12 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
 
+        // Loggen Sie die generierten Daten zur Fehlerbehebung
+        console.log("Anlage Daten:", { name, id, meldegruppen });
+
         try {
             // Dokument in der Sammlung "anlagen" hinzufügen
-            await addDoc(collection(db, "anlagen"), {
+            const docRef = await addDoc(collection(db, "anlagen"), {
                 name: name,
                 id: id,
                 meldegruppen: meldegruppen
