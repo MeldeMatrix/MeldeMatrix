@@ -132,12 +132,28 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        // Meldegruppen und Meldepunkte automatisch erstellen
+        const meldegruppen = [];
+        for (let i = 1; i <= 200; i++) {
+            const meldepunkte = [];
+            for (let j = 1; j <= 32; j++) {
+                meldepunkte.push({
+                    id: j,
+                    geprüft: false // Standardmäßig "Nicht geprüft"
+                });
+            }
+            meldegruppen.push({
+                name: `Meldegruppe ${i}`,
+                meldepunkte: meldepunkte
+            });
+        }
+
         try {
             // Dokument in der Sammlung "anlagen" hinzufügen
             await addDoc(collection(db, "anlagen"), {
                 name: name,
                 id: id,
-                meldegruppen: [] // Initial leer, aber später können Meldegruppen hinzugefügt werden
+                meldegruppen: meldegruppen
             });
 
             alert("Anlage erfolgreich hinzugefügt");
@@ -145,7 +161,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // Formular zurücksetzen
             addAnlageForm.reset();
 
-            // Laden Sie die Anlagen neu, um die neue Anlage anzuzeigen
+            // Anlagen neu laden, um die neue Anlage anzuzeigen
             loadAnlagen();
         } catch (error) {
             console.error("Fehler beim Hinzufügen der Anlage:", error);
