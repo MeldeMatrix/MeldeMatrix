@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="de">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,72 +7,44 @@
     <link rel="stylesheet" href="styles.css">
     <script type="module" src="app.js" defer></script>
 </head>
-
 <body>
-    <!-- Navbar -->
-    <div id="navbar">
-        <button id="home-link">Startseite</button>
-        <button id="search-link">Anlagen suchen</button>
-        <button id="create-link">Anlage erstellen</button>
-        <div id="auth-section">
-            <!-- Login and Logout Buttons -->
-            <button id="login-button" style="display:none;">Login</button>
-            <button id="logout-button" style="display:none;">Logout</button>
+    <header>
+        <div id="navbar">
+            <button id="login-button">Login</button>
         </div>
-    </div>
+    </header>
 
-    <!-- Startseite -->
-    <div id="home-page" class="page" style="display: none;">
-        <h2>Willkommen im Meldepunkte Tracker</h2>
-        <p>Bitte melden Sie sich an, um fortzufahren.</p>
-    </div>
-
-    <!-- Anlagen suchen -->
-    <div id="search-page" class="page" style="display: none;">
-        <h2>Anlagen suchen</h2>
-        <input type="text" id="search-input" placeholder="Anlagenname oder ID suchen">
-        <button id="search-button">Suchen</button>
-        <div id="search-results"></div>
-    </div>
-
-    <!-- Anlage erstellen -->
-    <div id="create-page" class="page" style="display: none;">
-        <h2>Neue Anlage erstellen</h2>
-        <input type="text" id="anlagen-name" placeholder="Anlagenname">
-        <input type="text" id="anlagen-nummer" placeholder="Anlagennummer (ID)">
-        <input type="number" id="meldegruppen-count" placeholder="Anzahl der Meldergruppen" min="1" max="200">
-        <button id="create-anlage-button">Anlage erstellen</button>
-    </div>
-
-    <!-- Anlage Details -->
-    <div id="anlage-details-page" class="page" style="display: none;">
-        <h2>Anlage Details</h2>
-        <h3 id="anlage-name-display">Anlagenname</h3>
-        <select id="quartal-select">
-            <option value="Q1">Q1</option>
-            <option value="Q2">Q2</option>
-            <option value="Q3">Q3</option>
-            <option value="Q4">Q4</option>
-        </select>
-        <input type="checkbox" id="show-open-points"> Nur offene Meldepunkte anzeigen
-        <div id="anlage-details-container"></div>
-    </div>
-
-    <!-- Scroll to top button -->
-    <button id="scroll-top-button" style="position: fixed; bottom: 20px; right: 20px;">↑</button>
-
-    <!-- Login Form (hidden initially) -->
-    <div id="login-form" style="display:none;">
+    <!-- Login Section -->
+    <section id="login-section">
         <h2>Login</h2>
-        <input type="email" id="email-input" placeholder="E-Mail">
-        <input type="password" id="password-input" placeholder="Passwort">
-        <button id="login-button-submit">Login</button>
-    </div>
+        <input type="email" id="email" placeholder="E-Mail" required>
+        <input type="password" id="password" placeholder="Passwort" required>
+        <button id="login-submit">Einloggen</button>
+        <p>Haben Sie noch kein Konto? <a href="#" id="register-link">Registrieren</a></p>
+    </section>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js"></script>
+    <!-- Home Section (only shown after login) -->
+    <section id="home-section" style="display:none;">
+        <h2>Willkommen im Meldepunkte Tracker</h2>
+        <button id="search-button">Anlage suchen</button>
+        <button id="create-button">Anlage erstellen</button>
+    </section>
+
+    <!-- Search Section -->
+    <section id="search-section" style="display:none;">
+        <h2>Anlage suchen</h2>
+        <input type="text" id="search-input" placeholder="Anlagen ID oder Name suchen">
+        <button id="search-submit">Suchen</button>
+    </section>
+
+    <!-- Create Section -->
+    <section id="create-section" style="display:none;">
+        <h2>Neue Anlage erstellen</h2>
+        <input type="text" id="new-anlage-name" placeholder="Anlagenname">
+        <input type="text" id="new-anlage-id" placeholder="Anlagen ID">
+        <input type="number" id="new-meldergruppen-count" placeholder="Anzahl Meldergruppen" min="1" max="20">
+        <button id="create-submit">Anlage erstellen</button>
+    </section>
+
 </body>
-
 </html>

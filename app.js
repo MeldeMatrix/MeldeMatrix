@@ -1,6 +1,7 @@
 // Firebase SDK Imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -15,111 +16,112 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 document.addEventListener("DOMContentLoaded", () => {
-    const homePage = document.getElementById("home-page");
-    const searchPage = document.getElementById("search-page");
-    const createPage = document.getElementById("create-page");
-    const anlageDetailsPage = document.getElementById("anlage-details-page");
-    const navbar = document.getElementById("navbar");
-    const authSection = document.getElementById("auth-section");
-    const scrollTopButton = document.getElementById("scroll-top-button");
+    const loginSection = document.getElementById("login-section");
+    const homeSection = document.getElementById("home-section");
+    const searchSection = document.getElementById("search-section");
+    const createSection = document.getElementById("create-section");
 
-    const emailInput = document.getElementById("email-input");
-    const passwordInput = document.getElementById("password-input");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
 
-    // Auth state changes
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            // User logged in
-            document.getElementById("login-button").style.display = "none";
-            document.getElementById("logout-button").style.display = "inline-block";
-            showPage(homePage);
-        } else {
-            // User not logged in
-            document.getElementById("login-button").style.display = "inline-block";
-            document.getElementById("logout-button").style.display = "none";
-            showPage(homePage);
-        }
-    });
+    const loginButton = document.getElementById("login-submit");
+    const registerLink = document.getElementById("register-link");
 
-    // Login Button Click Handler
-    document.getElementById("login-button").addEventListener("click", () => {
+    // Login function
+    loginButton.addEventListener("click", async () => {
         const email = emailInput.value;
         const password = passwordInput.value;
 
-        signInWithEmailAndPassword(auth, email, password)
-            .then((userCredential) => {
-                // User logged in
-                const user = userCredential.user;
-                alert(`Willkommen, ${user.email}`);
-                showPage(homePage);
-            })
-            .catch((error) => {
-                const errorCode = error.code;
-                const errorMessage = error.message;
-                alert(`Fehler beim Anmelden: ${errorMessage}`);
-            });
-    });
+        // Validate email format
+        if (!email || !password) {
+            alert("Bitte geben Sie sowohl eine E-Mail-Adresse als auch ein Passwort ein.");
+            return;
+        }
 
-    // Logout Button Click Handler
-    document.getElementById("logout-button").addEventListener("click", () => {
-        signOut(auth)
-            .then(() => {
-                alert("Erfolgreich abgemeldet");
-                showPage(homePage);
-            })
-            .catch((error) => {
-                alert("Fehler beim Abmelden");
-            });
-    });
+        if (!validateEmail(email)) {
+            alert("Bitte geben Sie eine gültige E-Mail-Adresse ein.");
+            return;
+        }
 
-    // Show the selected page
-    function showPage(page) {
-        const pages = document.querySelectorAll('.page');
-        pages.forEach(p => p.style.display = 'none');
-        page.style.display = 'block';
-    }
-
-    // Scroll to top button
-    scrollTopButton.addEventListener("click", () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-
-    // Handle 'Anlage erstellen' button
-    document.getElementById("create-anlage-button").addEventListener("click", () => {
-        const anlagenName = document.getElementById("anlagen-name").value;
-        const anlagenNummer = document.getElementById("anlagen-nummer").value;
-        const meldegruppenCount = document.getElementById("meldegruppen-count").value;
-
-        if (anlagenName && anlagenNummer && meldegruppenCount) {
-            createAnlage(anlagenName, anlagenNummer, parseInt(meldegruppenCount));
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            alert("Erfolgreich eingeloggt!");
+            loginSection.style.display = "none";
+            homeSection.style.display = "block";
+        } catch (error) {
+            console.error("Login fehlgeschlagen", error);
+            alert("Fehler beim Anmelden: " + error.message);
         }
     });
-    
-    // Create new Anlage in Firestore
-    async function createAnlage(name, nummer, meldergruppenCount) {
-        const db = getFirestore(app);
-        const docRef = await addDoc(collection(db, "anlagen"), {
-            name: name,
-            id: nummer,
-            meldegruppenCount: meldergruppenCount,
-            meldergruppen: createMeldergruppen(meldergruppenCount)
-        });
 
-        alert("Anlage erfolgreich erstellt!");
-        showPage(homePage);
+    // Register link handler (optional for now)
+    registerLink.addEventListener("click", () => {
+        alert("Registrierung wird derzeit nicht unterstützt.");
+    });
+
+    // Create new Anlage
+    document.getElementById("create-submit").addEventListener("click", async () => {
+        const anlageName = document.getElementById("new-anlage-name").value;
+        const anlageId = document.getElementById("new-anlage-id").value;
+        const meldergruppenCount = parseInt(document.getElementById("new-meldergruppen-count").value);
+
+        if (!anlageName || !anlageId || isNaN(meldergruppenCount) || meldergruppenCount < 1 || meldergruppenCount > 20) {
+            alert("Bitte geben Sie gültige Daten ein.");
+            return;
+        }
+
+        try {
+            const anlageRef = await addDoc(collection(db, "anlagen"), {
+                name: anlageName,
+                anlageId: anlageId,
+                meldergruppenCount: meldergruppenCount,
+                meldergruppen: createMeldergruppen(meldergruppenCount)
+            });
+            alert("Anlage erfolgreich erstellt!");
+            createSection.style.display = "none";
+            homeSection.style.display = "block";
+        } catch (error) {
+            console.error("Fehler beim Erstellen der Anlage", error);
+            alert("Fehler beim Erstellen der Anlage: " + error.message);
+        }
+    });
+
+    // Helper functions
+
+    // Validate email format
+    function validateEmail(email) {
+        const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+        return re.test(email);
     }
 
-    // Generate Meldergruppen for Anlage
+    // Generate Meldergruppen
     function createMeldergruppen(count) {
         const meldergruppen = [];
         for (let i = 1; i <= count; i++) {
-            meldergruppen.push({
+            const meldergruppe = {
                 name: `MG${i}`,
-                meldepunkte: Array(32).fill({ geprüft: false, quartal: "" })
-            });
+                meldepunkte: Array.from({ length: 32 }, (_, index) => ({
+                    id: index + 1,
+                    geprüft: false,
+                    prüfquartal: ""
+                }))
+            };
+            meldergruppen.push(meldergruppe);
         }
         return meldergruppen;
     }
+
+    // Firebase Auth state listener
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            loginSection.style.display = "none";
+            homeSection.style.display = "block";
+        } else {
+            loginSection.style.display = "block";
+            homeSection.style.display = "none";
+        }
+    });
 });

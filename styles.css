@@ -2,120 +2,45 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
+    background-color: #f4f4f4;
 }
 
-nav {
+header {
     background-color: #333;
     color: white;
     padding: 10px;
-    position: sticky;
-    top: 0;
-}
-
-nav ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-}
-
-nav ul li {
-    display: inline;
-    margin-right: 20px;
-}
-
-nav ul li a {
-    color: white;
-    text-decoration: none;
-}
-
-#auth-section {
-    float: right;
-}
-
-.page {
-    padding: 20px;
-    display: none;
+    text-align: center;
 }
 
 button {
-    margin-top: 10px;
-    padding: 10px;
+    padding: 10px 15px;
+    margin: 10px;
+    border: none;
+    background-color: #4CAF50;
+    color: white;
     cursor: pointer;
 }
 
-input, select {
+button:hover {
+    background-color: #45a049;
+}
+
+input[type="email"], input[type="password"], input[type="text"], input[type="number"] {
     padding: 10px;
-    margin-top: 10px;
+    margin: 5px;
     width: 100%;
     max-width: 300px;
+    display: block;
 }
 
-#anlagen-container {
-    margin-top: 20px;
-}
-
-.anlage {
-    padding: 10px;
-    background: #f9f9f9;
-    margin-bottom: 10px;
+section {
+    padding: 20px;
+    margin: 10px;
+    background-color: white;
     border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.anlage button {
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px;
-    border: none;
-    cursor: pointer;
-}
-
-.anlage button:hover {
-    background-color: #45a049;
-}
-
-/* Rasteransicht für Meldergruppen und Meldepunkte */
-.meldegruppe {
-    margin-bottom: 20px;
-}
-
-.meldepunkte-container {
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);  /* 8 Spalten */
-    gap: 10px;
-    margin-top: 10px;
-}
-
-.meldepunkt {
-    text-align: center;
-    padding: 10px;
-    border: 1px solid #ccc;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.meldepunkt.checked {
-    background-color: #4CAF50;
-    color: white;
-}
-
-.meldepunkt.not-checked {
-    background-color: #f44336;
-    color: white;
-}
-
-/* Pfeil zum Seitenanfang */
-.scroll-top-button {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 10px;
-    cursor: pointer;
-    border-radius: 50%;
-}
-
-.scroll-top-button:hover {
-    background-color: #45a049;
+h2 {
+    color: #333;
 }
