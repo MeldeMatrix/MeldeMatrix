@@ -14,7 +14,6 @@
             <li><a href="#" id="home-link">Startseite</a></li>
             <li><a href="#" id="search-link">Anlagen suchen</a></li>
             <li><a href="#" id="create-link">Anlage erstellen</a></li>
-            <li><a href="#" id="overview-link">Anlagen Übersicht</a></li>
         </ul>
         <div id="auth-section">
             <button id="login-button">Login</button>
@@ -45,22 +44,21 @@
         <button id="create-anlage-button">Anlage erstellen</button>
     </div>
 
-    <!-- Anlagen Übersicht -->
-    <div id="overview-page" class="page" style="display:none;">
-        <h2>Übersicht der Anlagen</h2>
-        <div id="anlagen-container"></div>
-    </div>
-
     <!-- Datenansicht für eine Anlage -->
     <div id="anlage-details-page" class="page" style="display:none;">
-        <h3>Wählen Sie das Prüfquartal</h3>
+        <h3 id="anlage-name-display">Anlage Name</h3>
         <select id="quartal-select">
             <option value="Q1">Q1</option>
             <option value="Q2">Q2</option>
             <option value="Q3">Q3</option>
             <option value="Q4">Q4</option>
         </select>
+        <label>
+            <input type="checkbox" id="show-open-points"> Nur offene Meldepunkte anzeigen
+        </label>
         <div id="anlage-details-container"></div>
+        <!-- Pfeil zum Seitenanfang -->
+        <button id="scroll-top-button" class="scroll-top-button">↑</button>
     </div>
 </body>
 </html>

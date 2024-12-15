@@ -22,11 +22,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const homePage = document.getElementById("home-page");
     const searchPage = document.getElementById("search-page");
     const createPage = document.getElementById("create-page");
-    const overviewPage = document.getElementById("overview-page");
-    const anlagenContainer = document.getElementById("anlagen-container");
     const anlageDetailsPage = document.getElementById("anlage-details-page");
     const navbar = document.getElementById("navbar");
     const authSection = document.getElementById("auth-section");
+    const scrollTopButton = document.getElementById("scroll-top-button");
+    const anlageNameDisplay = document.getElementById("anlage-name-display");
+    const quartalSelect = document.getElementById("quartal-select");
+    const showOpenPointsCheckbox = document.getElementById("show-open-points");
 
     // Auth state changes
     onAuthStateChanged(auth, (user) => {
@@ -45,7 +47,11 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("home-link").addEventListener("click", () => showPage(homePage));
     document.getElementById("search-link").addEventListener("click", () => showPage(searchPage));
     document.getElementById("create-link").addEventListener("click", () => showPage(createPage));
-    document.getElementById("overview-link").addEventListener("click", () => loadAnlagen());
+
+    // Scroll to top button
+    scrollTopButton.addEventListener("click", () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
 
     // Show the selected page
     function showPage(page) {
@@ -72,7 +78,19 @@ document.addEventListener("DOMContentLoaded", () => {
         foundAnlagen.forEach(anlage => {
             const anlageDiv = document.createElement("div");
             anlageDiv.className = "anlage";
-            anlageDiv.innerHTML = `<h3>${anlage.name}</h3><p>ID: ${anlage.id}</p><button class="view-button" data-id="${anlage.id}">Anlage anzeigen</button>`;
+            const totalMeldergruppen = anlage.meldegruppen.length;
+            const totalPruefungen = anlage.meldegruppen.reduce((sum, gruppe) => {
+                return sum + gruppe.meldepunkte.filter(punkt => punkt.geprüft).length;
+            }, 0);
+            const pruefungsPercentage = ((totalPruefungen / (totalMeldergruppen * 32)) * 100).toFixed(2);
+
+            anlageDiv.innerHTML = `
+                <h3>${anlage.name}</h3>
+                <p>ID: ${anlage.id}</p>
+                <p>Meldergruppen: ${totalMeldergruppen}</p>
+                <p>Geprüft: ${totalPruefungen} / ${totalMeldergruppen * 32} (${pruefungsPercentage}%)</p>
+                <button class="view-button" data-id="${anlage.id}">Anlage anzeigen</button>
+            `;
             resultsDiv.appendChild(anlageDiv);
         });
     });
@@ -90,16 +108,22 @@ document.addEventListener("DOMContentLoaded", () => {
         const anlagenName = document.getElementById("anlage-name").value;
         const anlagenNummer = document.getElementById("anlage-number").value;
         const meldegruppenCount = document.getElementById("meldegruppen-count").value;
+        
+        const anlageRef = doc(db, "anlagen", anlagenNummer);
+        await setDoc(anlageRef, {
+            id: anlagenNummer,
+            name: anlagenName,
+            meldegruppen: createMeldegruppen(meldegruppenCount),
+        });
 
-        if (anlagenName && anlagenNummer && meldegruppenCount) {
-            await createAnlage(anlagenNummer, anlagenName, parseInt(meldegruppenCount));
-        }
+        alert("Anlage erfolgreich erstellt!");
+        showPage(homePage);
     });
 
-    // Create an Anlage in Firestore
-    async function createAnlage(anlagenNummer, name, meldegruppenCount) {
+    // Helper to create Meldegruppen for the Anlage
+    function createMeldegruppen(count) {
         const meldegruppen = [];
-        for (let i = 1; i <= meldegruppenCount; i++) {
+        for (let i = 1; i <= count; i++) {
             const meldepunkte = [];
             for (let j = 1; j <= 32; j++) {
                 meldepunkte.push({
@@ -109,31 +133,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     quartal: null
                 });
             }
-
-            meldegruppen.push({
-                name: `MG${i}`,
-                meldepunkte: meldepunkte
-            });
+            meldegruppen.push({ name: `MG${i}`, meldepunkte });
         }
-
-        const anlage = {
-            id: anlagenNummer,  // Die Anlagennummer wird als ID genutzt
-            name: name,
-            meldegruppen: meldegruppen,
-            erstelltAm: new Date()
-        };
-
-        try {
-            await setDoc(doc(db, "anlagen", String(anlage.id)), anlage);
-            alert("Anlage erfolgreich erstellt!");
-            showPage(homePage);
-        } catch (error) {
-            console.error("Fehler beim Erstellen der Anlage:", error);
-            alert("Fehler beim Erstellen der Anlage");
-        }
+        return meldegruppen;
     }
 
-    // Load and display anlage details
+    // Display Anlage details
     async function displayAnlageDetails(anlageId) {
         const anlageRef = doc(db, "anlagen", anlageId);
         const docSnap = await getDoc(anlageRef);
@@ -142,10 +147,11 @@ document.addEventListener("DOMContentLoaded", () => {
             const anlage = docSnap.data();
             const detailsContainer = document.getElementById("anlage-details-container");
             detailsContainer.innerHTML = '';
+            
+            anlageNameDisplay.textContent = anlage.name;
 
-            // Quartal auswählen
             const quartalSelect = document.getElementById("quartal-select");
-            const selectedQuartal = quartalSelect.value;
+            const showOpenPoints = document.getElementById("show-open-points");
 
             anlage.meldegruppen.forEach(gruppe => {
                 const groupDiv = document.createElement("div");
@@ -153,26 +159,27 @@ document.addEventListener("DOMContentLoaded", () => {
                 groupDiv.innerHTML = `<h4>${gruppe.name}</h4><div class="meldepunkte-container">`;
 
                 gruppe.meldepunkte.forEach(punkt => {
-                    const punktDiv = document.createElement("div");
-                    punktDiv.classList.add("meldepunkt");
-                    punktDiv.classList.add(punkt.geprüft ? 'checked' : 'not-checked');
-                    punktDiv.textContent = punkt.id;
+                    if (!showOpenPoints.checked || !punkt.geprüft) {
+                        const punktDiv = document.createElement("div");
+                        punktDiv.classList.add("meldepunkt");
+                        punktDiv.classList.add(punkt.geprüft ? 'checked' : 'not-checked');
+                        punktDiv.textContent = punkt.id;
 
-                    // Add click handler to toggle checked status
-                    punktDiv.addEventListener("click", async () => {
-                        punkt.geprüft = !punkt.geprüft;
-                        punkt.geprüftAm = punkt.geprüft ? new Date() : null;
-                        punkt.quartal = selectedQuartal;
+                        // Add click handler to toggle checked status
+                        punktDiv.addEventListener("click", async () => {
+                            punkt.geprüft = !punkt.geprüft;
+                            punkt.geprüftAm = punkt.geprüft ? new Date() : null;
+                            punkt.quartal = quartalSelect.value;
 
-                        // Update in Firestore
-                        await updateDoc(anlageRef, {
-                            meldegruppen: anlage.meldegruppen
+                            await updateDoc(anlageRef, {
+                                meldegruppen: anlage.meldegruppen
+                            });
+
+                            displayAnlageDetails(anlageId);  // Refresh the details view
                         });
 
-                        displayAnlageDetails(anlageId);  // Refresh the details view
-                    });
-
-                    groupDiv.querySelector(".meldepunkte-container").appendChild(punktDiv);
+                        groupDiv.querySelector(".meldepunkte-container").appendChild(punktDiv);
+                    }
                 });
 
                 detailsContainer.appendChild(groupDiv);
@@ -183,29 +190,4 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log("Anlage nicht gefunden!");
         }
     }
-
-    // Handle login and logout
-    document.getElementById("login-button").addEventListener("click", () => {
-        const email = prompt("Email eingeben:");
-        const password = prompt("Passwort eingeben:");
-
-        signInWithEmailAndPassword(auth, email, password)
-            .then(() => {
-                console.log("Erfolgreich eingeloggt!");
-            })
-            .catch((error) => {
-                console.error("Login fehlgeschlagen:", error);
-                alert("Login fehlgeschlagen!");
-            });
-    });
-
-    document.getElementById("logout-button").addEventListener("click", () => {
-        signOut(auth)
-            .then(() => {
-                console.log("Erfolgreich ausgeloggt!");
-            })
-            .catch((error) => {
-                console.error("Logout fehlgeschlagen:", error);
-            });
-    });
 });
