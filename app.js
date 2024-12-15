@@ -1,7 +1,7 @@
 // Firebase SDK Imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const authSection = document.getElementById("auth-section");
     const dataSection = document.getElementById("data-section");
     const anlagenContainer = document.getElementById("anlagen-container");
+    const addAnlageForm = document.getElementById("add-anlage-form");
 
     // Monitor Auth State
     onAuthStateChanged(auth, async (user) => {
@@ -73,7 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Function to Load Anlagen
+    // Load Anlagen Function
     async function loadAnlagen() {
         try {
             const querySnapshot = await getDocs(collection(db, "anlagen"));
@@ -118,4 +119,37 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("Fehler beim Laden der Anlagen");
         }
     }
+
+    // Add a new Anlage to Firestore
+    addAnlageForm.addEventListener("submit", async (e) => {
+        e.preventDefault(); // Verhindert das Standard-Formularverhalten (Seitenreload)
+
+        const name = document.getElementById("anlage-name").value;
+        const id = document.getElementById("anlage-id").value;
+
+        if (!name || !id) {
+            alert("Bitte geben Sie den Namen und die ID der neuen Anlage ein.");
+            return;
+        }
+
+        try {
+            // Dokument in der Sammlung "anlagen" hinzufügen
+            await addDoc(collection(db, "anlagen"), {
+                name: name,
+                id: id,
+                meldegruppen: [] // Initial leer, aber später können Meldegruppen hinzugefügt werden
+            });
+
+            alert("Anlage erfolgreich hinzugefügt");
+
+            // Formular zurücksetzen
+            addAnlageForm.reset();
+
+            // Laden Sie die Anlagen neu, um die neue Anlage anzuzeigen
+            loadAnlagen();
+        } catch (error) {
+            console.error("Fehler beim Hinzufügen der Anlage:", error);
+            alert("Fehler beim Hinzufügen der Anlage: " + error.message);
+        }
+    });
 });

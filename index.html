@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meldepunkte Tracker</title>
     <link rel="stylesheet" href="styles.css">
+    <script type="module" src="app.js" defer></script>
 </head>
 <body>
     <h1>Meldepunkte Tracker</h1>
@@ -12,8 +13,8 @@
     <!-- Authentication Section -->
     <section id="auth-section">
         <h2>Authentifizierung</h2>
-        <input type="email" id="email" placeholder="E-Mail">
-        <input type="password" id="password" placeholder="Passwort">
+        <input type="email" id="email" placeholder="E-Mail" required>
+        <input type="password" id="password" placeholder="Passwort" required>
         <button id="login-button">Einloggen</button>
         <button id="register-button">Registrieren</button>
     </section>
@@ -22,13 +23,20 @@
     <section id="data-section" style="display: none;">
         <h2>Willkommen</h2>
         <p>Sie sind erfolgreich eingeloggt.</p>
+        
+        <!-- Anlagenübersicht -->
         <h3>Anlagenübersicht</h3>
         <div id="anlagen-container">
             <!-- Anlagen werden hier dynamisch geladen -->
         </div>
-    </section>
 
-    <!-- Script am Ende des Body -->
-    <script type="module" src="app.js"></script>
+        <!-- Formular zum Hinzufügen einer neuen Anlage -->
+        <h3>Neue Anlage hinzufügen</h3>
+        <form id="add-anlage-form">
+            <input type="text" id="anlage-name" placeholder="Name der Anlage" required />
+            <input type="text" id="anlage-id" placeholder="ID der Anlage" required />
+            <button type="submit">Anlage hinzufügen</button>
+        </form>
+    </section>
 </body>
 </html>
