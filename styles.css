@@ -43,7 +43,7 @@ button {
     cursor: pointer;
 }
 
-input {
+input, select {
     padding: 10px;
     margin-top: 10px;
     width: 100%;
@@ -71,4 +71,34 @@ input {
 
 .anlage button:hover {
     background-color: #45a049;
+}
+
+/* Rasteransicht für Meldergruppen und Meldepunkte */
+.meldegruppe {
+    margin-bottom: 20px;
+}
+
+.meldepunkte-container {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);  /* 8 Spalten */
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.meldepunkt {
+    text-align: center;
+    padding: 10px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.meldepunkt.checked {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.meldepunkt.not-checked {
+    background-color: #f44336;
+    color: white;
 }

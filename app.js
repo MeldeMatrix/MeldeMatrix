@@ -1,6 +1,6 @@
 // Firebase SDK Imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
 import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
 
 // Firebase Configuration
@@ -105,7 +105,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 meldepunkte.push({
                     id: j,
                     geprüft: false,
-                    geprüftAm: null
+                    geprüftAm: null,
+                    quartal: null
                 });
             }
 
@@ -132,47 +133,46 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Load all Anlagen
-    async function loadAnlagen() {
-        const querySnapshot = await getDocs(collection(db, "anlagen"));
-        anlagenContainer.innerHTML = "";
-        
-        querySnapshot.forEach((doc) => {
-            const anlage = doc.data();
-            const anlageDiv = document.createElement("div");
-            anlageDiv.className = "anlage";
-            anlageDiv.innerHTML = `<h3>${anlage.name}</h3><p>ID: ${anlage.id}</p><button class="view-button" data-id="${anlage.id}">Anlage anzeigen</button>`;
-            anlagenContainer.appendChild(anlageDiv);
-        });
-
-        showPage(overviewPage);
-    }
-
-    // Show anlage details (display and update)
+    // Load and display anlage details
     async function displayAnlageDetails(anlageId) {
         const anlageRef = doc(db, "anlagen", anlageId);
         const docSnap = await getDoc(anlageRef);
-
+        
         if (docSnap.exists()) {
             const anlage = docSnap.data();
             const detailsContainer = document.getElementById("anlage-details-container");
-            detailsContainer.innerHTML = `<h3>${anlage.name}</h3><p>ID: ${anlage.id}</p>`;
-            
+            detailsContainer.innerHTML = '';
+
+            // Quartal auswählen
+            const quartalSelect = document.getElementById("quartal-select");
+            const selectedQuartal = quartalSelect.value;
+
             anlage.meldegruppen.forEach(gruppe => {
                 const groupDiv = document.createElement("div");
-                groupDiv.classList.add("gruppe");
-                groupDiv.innerHTML = `<h4>${gruppe.name}</h4><div class="punkte-container"></div>`;
+                groupDiv.classList.add("meldegruppe");
+                groupDiv.innerHTML = `<h4>${gruppe.name}</h4><div class="meldepunkte-container">`;
 
                 gruppe.meldepunkte.forEach(punkt => {
                     const punktDiv = document.createElement("div");
-                    punktDiv.classList.add("punkt");
-                    punktDiv.innerHTML = `
-                        <p>ID: ${punkt.id} - Status: ${punkt.geprüft ? "✔️ Geprüft" : "❌ Nicht geprüft"}</p>
-                        <button class="check-button" data-id="${punkt.id}" data-gruppe="${gruppe.name}" data-anlage="${anlage.id}">
-                            ${punkt.geprüft ? "Status zurücksetzen" : "Als geprüft markieren"}
-                        </button>
-                    `;
-                    groupDiv.querySelector(".punkte-container").appendChild(punktDiv);
+                    punktDiv.classList.add("meldepunkt");
+                    punktDiv.classList.add(punkt.geprüft ? 'checked' : 'not-checked');
+                    punktDiv.textContent = punkt.id;
+
+                    // Add click handler to toggle checked status
+                    punktDiv.addEventListener("click", async () => {
+                        punkt.geprüft = !punkt.geprüft;
+                        punkt.geprüftAm = punkt.geprüft ? new Date() : null;
+                        punkt.quartal = selectedQuartal;
+
+                        // Update in Firestore
+                        await updateDoc(anlageRef, {
+                            meldegruppen: anlage.meldegruppen
+                        });
+
+                        displayAnlageDetails(anlageId);  // Refresh the details view
+                    });
+
+                    groupDiv.querySelector(".meldepunkte-container").appendChild(punktDiv);
                 });
 
                 detailsContainer.appendChild(groupDiv);
@@ -183,37 +183,12 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log("Anlage nicht gefunden!");
         }
     }
-    
-    // Handling check button for Meldepunkte
-    document.getElementById("anlage-details-container").addEventListener("click", async (e) => {
-        if (e.target && e.target.classList.contains("check-button")) {
-            const punktId = e.target.getAttribute("data-id");
-            const gruppeName = e.target.getAttribute("data-gruppe");
-            const anlageId = e.target.getAttribute("data-anlage");
-
-            const anlageRef = doc(db, "anlagen", anlageId);
-            const docSnap = await getDoc(anlageRef);
-            if (docSnap.exists()) {
-                const anlage = docSnap.data();
-                const gruppe = anlage.meldegruppen.find(gr => gr.name === gruppeName);
-                const punkt = gruppe.meldepunkte.find(p => p.id === parseInt(punktId));
-                punkt.geprüft = !punkt.geprüft;
-                punkt.geprüftAm = punkt.geprüft ? new Date() : null;
-                
-                await updateDoc(anlageRef, {
-                    meldegruppen: anlage.meldegruppen
-                });
-
-                displayAnlageDetails(anlageId);  // Refresh page
-            }
-        }
-    });
 
     // Handle login and logout
     document.getElementById("login-button").addEventListener("click", () => {
         const email = prompt("Email eingeben:");
         const password = prompt("Passwort eingeben:");
-        
+
         signInWithEmailAndPassword(auth, email, password)
             .then(() => {
                 console.log("Erfolgreich eingeloggt!");
