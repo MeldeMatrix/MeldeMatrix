@@ -10,33 +10,35 @@
 <body>
     <h1>Meldepunkte Tracker</h1>
 
-    <!-- Authentication Section -->
+    <!-- Authentifizierung Section -->
     <section id="auth-section">
         <h2>Authentifizierung</h2>
-        <input type="email" id="email" placeholder="E-Mail" required>
-        <input type="password" id="password" placeholder="Passwort" required>
+        <input type="email" id="email" placeholder="E-Mail">
+        <input type="password" id="password" placeholder="Passwort">
         <button id="login-button">Einloggen</button>
         <button id="register-button">Registrieren</button>
     </section>
 
-    <!-- Data Section (hidden until login) -->
-    <section id="data-section" style="display: none;">
-        <h2>Willkommen</h2>
-        <p>Sie sind erfolgreich eingeloggt.</p>
-        
-        <!-- Anlagenübersicht -->
-        <h3>Anlagenübersicht</h3>
-        <div id="anlagen-container">
-            <!-- Anlagen werden hier dynamisch geladen -->
-        </div>
+    <!-- Search Section (shown after login) -->
+    <section id="search-section" style="display: none;">
+        <h2>Anlage suchen</h2>
+        <input type="text" id="search-field" placeholder="Anlage ID oder Name" />
+        <button id="search-button">Suchen</button>
+        <button id="create-button">Neue Anlage erstellen</button>
+    </section>
 
-        <!-- Formular zum Hinzufügen einer neuen Anlage -->
-        <h3>Neue Anlage hinzufügen</h3>
-        <form id="add-anlage-form">
-            <input type="text" id="anlage-name" placeholder="Name der Anlage" required />
-            <input type="text" id="anlage-id" placeholder="ID der Anlage" required />
-            <button type="submit">Anlage hinzufügen</button>
-        </form>
+    <!-- Create Anlage Section -->
+    <section id="create-anlage-section" style="display: none;">
+        <h2>Neue Anlage erstellen</h2>
+        <input type="text" id="new-anlage-name" placeholder="Name der neuen Anlage" />
+        <button id="create-anlage-button">Erstellen</button>
+        <button id="cancel-create-anlage">Abbrechen</button>
+    </section>
+
+    <!-- Data Section (shown after search) -->
+    <section id="data-section" style="display: none;">
+        <h2>Details zur Anlage</h2>
+        <div id="anlagen-container"></div>
     </section>
 </body>
 </html>
