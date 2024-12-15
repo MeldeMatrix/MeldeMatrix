@@ -5,158 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meldepunkte Tracker</title>
     <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-        import { getFirestore, setDoc, doc, getDoc, onSnapshot, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
-
-        // Firebase Configuration
-        const firebaseConfig = {
-  	apiKey: "AIzaSyAN2ZXKYzFoJ0o__qAyVxubjit3wrlEGlo",
-  	authDomain: "meldepunktpro.firebaseapp.com",
-  	projectId: "meldepunktpro",
-  	storageBucket: "meldepunktpro.firebasestorage.app",
-  	messagingSenderId: "1084931878712",
-  	appId: "1:1084931878712:web:bfa5e31c03fad5e1015bcd"
-	};
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
-        // Enable Offline Persistence
-        enableIndexedDbPersistence(db).catch((err) => {
-            console.error("Offline-Modus konnte nicht aktiviert werden:", err);
-        });
-
-        // Authentication Functions
-        async function login(email, password) {
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-                alert("Erfolgreich eingeloggt");
-            } catch (error) {
-                alert("Login fehlgeschlagen: " + error.message);
-            }
-        }
-
-        async function register(email, password) {
-            try {
-                await createUserWithEmailAndPassword(auth, email, password);
-                alert("Benutzer registriert");
-            } catch (error) {
-                alert("Registrierung fehlgeschlagen: " + error.message);
-            }
-        }
-
-        // Firestore Functions
-        async function addAnlage(anlageId, name) {
-            try {
-                await setDoc(doc(db, "anlagen", anlageId), {
-                    name: name,
-                    meldegruppen: []
-                });
-                alert(`Anlage '${name}' erfolgreich hinzugefügt.`);
-            } catch (error) {
-                console.error("Fehler beim Hinzufügen der Anlage:", error);
-            }
-        }
-
-        async function addMeldegruppe(meldegruppeId, anlageId) {
-            const melderpunkte = Array.from({ length: 32 }, (_, index) => ({
-                nummer: index + 1,
-                name: `Meldepunkt ${index + 1}`,
-                zd_markiert: false
-            }));
-
-            try {
-                await setDoc(doc(db, "meldegruppen", meldegruppeId), {
-                    anlage_id: anlageId,
-                    melderpunkte: melderpunkte
-                });
-                alert(`Meldegruppe '${meldegruppeId}' erfolgreich hinzugefügt.`);
-            } catch (error) {
-                console.error("Fehler beim Hinzufügen der Meldegruppe:", error);
-            }
-        }
-
-        async function addPruefstatus(anlageId, jahr, meldegruppen) {
-            const meldegruppenStatus = meldegruppen.map((mg) => ({
-                meldegruppe_id: mg.id,
-                melderpunkte: mg.melderpunkte.map((mp) => ({ nummer: mp.nummer, geprüft: false }))
-            }));
-
-            try {
-                await setDoc(doc(db, "prüfstatus", `${anlageId}_${jahr}`), {
-                    jahr: jahr,
-                    meldegruppen: meldegruppenStatus
-                });
-                alert(`Prüfstatus für '${jahr}' erfolgreich hinzugefügt.`);
-            } catch (error) {
-                console.error("Fehler beim Hinzufügen des Prüfstatus:", error);
-            }
-        }
-
-        async function loadAnlagen() {
-            const anlageId = document.getElementById("anlage-id").value;
-            const jahr = document.getElementById("jahr").value;
-
-            const pruefstatusRef = doc(db, "prüfstatus", `${anlageId}_${jahr}`);
-            const docSnapshot = await getDoc(pruefstatusRef);
-
-            if (docSnapshot.exists()) {
-                const data = docSnapshot.data();
-                const output = document.getElementById("output");
-                output.innerHTML = JSON.stringify(data, null, 2);
-            } else {
-                alert("Keine Daten gefunden.");
-            }
-        }
-
-        window.addAnlage = addAnlage;
-        window.addMeldegruppe = addMeldegruppe;
-        window.addPruefstatus = addPruefstatus;
-        window.loadAnlagen = loadAnlagen;
-        window.login = login;
-        window.register = register;
-    </script>
+    <script type="module" src="functions.js"></script>
 </head>
 <body>
     <h1>Meldepunkte Tracker</h1>
 
-    <section id="auth">
+    <!-- Authentication Section -->
+    <section id="auth-section">
         <h2>Authentifizierung</h2>
         <input type="email" id="email" placeholder="E-Mail">
         <input type="password" id="password" placeholder="Passwort">
-        <button onclick="login(email.value, password.value)">Einloggen</button>
-        <button onclick="register(email.value, password.value)">Registrieren</button>
+        <button onclick="login(document.getElementById('email').value, document.getElementById('password').value)">Einloggen</button>
+        <button onclick="register(document.getElementById('email').value, document.getElementById('password').value)">Registrieren</button>
     </section>
 
-    <section id="anlage-section">
+    <!-- Data Section (hidden until login) -->
+    <section id="data-section" style="display: none;">
+        <h2>Anlagen Übersicht</h2>
+        <ul id="anlagen-list">
+            <!-- Anlagen werden hier geladen -->
+        </ul>
+
         <h2>Anlage hinzufügen</h2>
         <input type="text" id="anlage-id" placeholder="Anlagen-ID">
         <input type="text" id="anlage-name" placeholder="Anlagen-Name">
-        <button onclick="addAnlage(anlageId.value, anlageName.value)">Anlage hinzufügen</button>
-    </section>
+        <button onclick="addAnlage(document.getElementById('anlage-id').value, document.getElementById('anlage-name').value)">Anlage hinzufügen</button>
 
-    <section id="meldegruppe-section">
-        <h2>Meldegruppe hinzufügen</h2>
-        <input type="text" id="meldegruppe-id" placeholder="Meldegruppen-ID">
-        <input type="text" id="meldegruppe-anlage-id" placeholder="Anlagen-ID">
-        <button onclick="addMeldegruppe(meldegruppeId.value, meldegruppeAnlageId.value)">Meldegruppe hinzufügen</button>
-    </section>
-
-    <section id="pruefstatus-section">
-        <h2>Prüfstatus hinzufügen</h2>
-        <input type="text" id="pruefstatus-anlage-id" placeholder="Anlagen-ID">
-        <input type="number" id="pruefstatus-jahr" placeholder="Jahr">
-        <button onclick="addPruefstatus(pruefstatusAnlageId.value, pruefstatusJahr.value, [])">Prüfstatus hinzufügen</button>
-    </section>
-
-    <section id="output-section">
         <h2>Prüfstatus laden</h2>
         <input type="text" id="jahr" placeholder="Jahr">
-        <button onclick="loadAnlagen()">Laden</button>
+        <button onclick="loadAnlagen(document.getElementById('anlage-id').value, document.getElementById('jahr').value).then(data => {
+            const output = document.getElementById('output');
+            if (data) {
+                output.textContent = JSON.stringify(data, null, 2);
+            } else {
+                output.textContent = 'Keine Daten gefunden';
+            }
+        });">Laden</button>
         <pre id="output"></pre>
     </section>
 </body>
