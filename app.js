@@ -1,7 +1,7 @@
 // Firebase SDK Imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -19,51 +19,56 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 document.addEventListener("DOMContentLoaded", () => {
-    const loginSection = document.getElementById("login-section");
     const homeSection = document.getElementById("home-section");
     const searchSection = document.getElementById("search-section");
     const createSection = document.getElementById("create-section");
+    const searchButton = document.getElementById("search-button");
+    const createButton = document.getElementById("create-button");
 
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
+    const searchSubmit = document.getElementById("search-submit");
+    const createSubmit = document.getElementById("create-submit");
 
-    const loginButton = document.getElementById("login-submit");
-    const registerLink = document.getElementById("register-link");
+    // Home section buttons
+    searchButton.addEventListener("click", () => {
+        homeSection.style.display = "none";
+        searchSection.style.display = "block";
+    });
 
-    // Login function
-    loginButton.addEventListener("click", async () => {
-        const email = emailInput.value;
-        const password = passwordInput.value;
+    createButton.addEventListener("click", () => {
+        homeSection.style.display = "none";
+        createSection.style.display = "block";
+    });
 
-        // Validate email format
-        if (!email || !password) {
-            alert("Bitte geben Sie sowohl eine E-Mail-Adresse als auch ein Passwort ein.");
-            return;
-        }
-
-        if (!validateEmail(email)) {
-            alert("Bitte geben Sie eine gültige E-Mail-Adresse ein.");
+    // Search function
+    searchSubmit.addEventListener("click", async () => {
+        const searchInput = document.getElementById("search-input").value;
+        if (!searchInput) {
+            alert("Bitte geben Sie eine Anlagennummer oder einen Anlagennamen ein.");
             return;
         }
 
         try {
-            await signInWithEmailAndPassword(auth, email, password);
-            alert("Erfolgreich eingeloggt!");
-            loginSection.style.display = "none";
-            homeSection.style.display = "block";
+            // Query to find an Anlage by ID or Name
+            const q = query(
+                collection(db, "anlagen"),
+                where("anlageId", "==", searchInput),
+                where("name", "==", searchInput)
+            );
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                alert("Anlage gefunden!");
+            } else {
+                alert("Keine Anlage gefunden.");
+            }
         } catch (error) {
-            console.error("Login fehlgeschlagen", error);
-            alert("Fehler beim Anmelden: " + error.message);
+            console.error("Fehler bei der Suche nach der Anlage", error);
+            alert("Fehler bei der Suche nach der Anlage.");
         }
     });
 
-    // Register link handler (optional for now)
-    registerLink.addEventListener("click", () => {
-        alert("Registrierung wird derzeit nicht unterstützt.");
-    });
-
     // Create new Anlage
-    document.getElementById("create-submit").addEventListener("click", async () => {
+    createSubmit.addEventListener("click", async () => {
         const anlageName = document.getElementById("new-anlage-name").value;
         const anlageId = document.getElementById("new-anlage-id").value;
         const meldergruppenCount = parseInt(document.getElementById("new-meldergruppen-count").value);
@@ -90,14 +95,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Helper functions
-
-    // Validate email format
-    function validateEmail(email) {
-        const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-        return re.test(email);
-    }
-
-    // Generate Meldergruppen
     function createMeldergruppen(count) {
         const meldergruppen = [];
         for (let i = 1; i <= count; i++) {
@@ -117,11 +114,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Firebase Auth state listener
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            loginSection.style.display = "none";
             homeSection.style.display = "block";
         } else {
-            loginSection.style.display = "block";
-            homeSection.style.display = "none";
+            alert("Bitte loggen Sie sich ein.");
         }
     });
 });
