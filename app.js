@@ -1,6 +1,6 @@
 // Firebase SDK Imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
 import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
 
 // Firebase Configuration
@@ -22,11 +22,39 @@ document.addEventListener("DOMContentLoaded", () => {
     const homeSection = document.getElementById("home-section");
     const searchSection = document.getElementById("search-section");
     const createSection = document.getElementById("create-section");
+    const loginSection = document.getElementById("login-section");
     const searchButton = document.getElementById("search-button");
     const createButton = document.getElementById("create-button");
 
     const searchSubmit = document.getElementById("search-submit");
     const createSubmit = document.getElementById("create-submit");
+
+    const loginButton = document.getElementById("login-button");
+    const registerButton = document.getElementById("register-button");
+
+    // Login Form Submission
+    loginButton.addEventListener("click", async () => {
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch (error) {
+            console.error("Login Fehler:", error);
+            alert("Fehler beim Anmelden: " + error.message);
+        }
+    });
+
+    // Registration Form Submission
+    registerButton.addEventListener("click", async () => {
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        try {
+            await createUserWithEmailAndPassword(auth, email, password);
+        } catch (error) {
+            console.error("Registrierung Fehler:", error);
+            alert("Fehler bei der Registrierung: " + error.message);
+        }
+    });
 
     // Home section buttons
     searchButton.addEventListener("click", () => {
@@ -114,9 +142,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // Firebase Auth state listener
     onAuthStateChanged(auth, (user) => {
         if (user) {
+            loginSection.style.display = "none";
             homeSection.style.display = "block";
         } else {
-            alert("Bitte loggen Sie sich ein.");
+            loginSection.style.display = "block";
+            homeSection.style.display = "none";
         }
     });
 });
