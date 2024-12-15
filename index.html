@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,36 +8,27 @@
     <script type="module" src="app.js" defer></script>
 </head>
 <body>
-    <!-- Home Section (only shown after login) -->
-    <section id="home-section" style="display:none;">
-        <h2>Willkommen im Meldepunkte Tracker</h2>
-        <button id="search-button">Anlage suchen</button>
-        <button id="create-button">Anlage erstellen</button>
-    </section>
-
-    <!-- Search Section -->
-    <section id="search-section" style="display:none;">
-        <h2>Anlage suchen</h2>
-        <input type="text" id="search-input" placeholder="Anlagen ID oder Name suchen">
-        <button id="search-submit">Suchen</button>
-    </section>
-
-    <!-- Create Section -->
-    <section id="create-section" style="display:none;">
-        <h2>Neue Anlage erstellen</h2>
-        <input type="text" id="new-anlage-name" placeholder="Anlagenname">
-        <input type="text" id="new-anlage-id" placeholder="Anlagen ID">
-        <input type="number" id="new-meldergruppen-count" placeholder="Anzahl Meldergruppen" min="1" max="20">
-        <button id="create-submit">Anlage erstellen</button>
-    </section>
-
-    <!-- Login Section (only shown when user is not logged in) -->
-    <section id="login-section" style="display:none;">
-        <h2>Login</h2>
+    <!-- Auth Section -->
+    <section id="auth-section">
+        <h1>Meldepunkte Tracker</h1>
         <input type="email" id="email" placeholder="E-Mail">
         <input type="password" id="password" placeholder="Passwort">
         <button id="login-button">Einloggen</button>
-        <button id="register-button">Registrieren</button>
+    </section>
+
+    <!-- Menu Section -->
+    <section id="menu-section" style="display: none;">
+        <header>
+            <h1>Meldepunkte Tracker</h1>
+            <nav>
+                <button id="search-submit">Anlagen Suchen</button>
+                <button id="create-submit">Anlage Erstellen</button>
+                <button id="logout-button">Ausloggen</button>
+            </nav>
+        </header>
+        <main>
+            <div id="content"></div>
+        </main>
     </section>
 </body>
 </html>

@@ -1,7 +1,21 @@
 // Firebase SDK Imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
-import { getFirestore, collection, getDocs, addDoc, query, where, updateDoc, doc } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+import {
+    getAuth,
+    signInWithEmailAndPassword,
+    onAuthStateChanged,
+    signOut
+} from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+import {
+    getFirestore,
+    collection,
+    getDoc,
+    doc,
+    setDoc,
+    query,
+    where,
+    getDocs
+} from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -19,160 +33,96 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // DOM Elements
-const loginButton = document.getElementById("login-button");
-const logoutButton = document.getElementById("logout-button");
-const searchSubmit = document.getElementById("search-submit");
-const createSubmit = document.getElementById("create-submit");
+const authSection = document.getElementById("auth-section");
+const menuSection = document.getElementById("menu-section");
 const content = document.getElementById("content");
-const currentAnlage = document.getElementById("current-anlage");
 
-// Monitor Auth State
+// Event Listeners
+document.getElementById("login-button").addEventListener("click", async () => {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+        alert("Login erfolgreich!");
+    } catch (error) {
+        alert(`Fehler beim Anmelden: ${error.message}`);
+    }
+});
+
+document.getElementById("logout-button").addEventListener("click", async () => {
+    await signOut(auth);
+    alert("Abgemeldet!");
+});
+
+document.getElementById("search-submit").addEventListener("click", showSearchPage);
+document.getElementById("create-submit").addEventListener("click", showCreatePage);
+
+// Authentication State Change
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        document.getElementById("auth-section").style.display = "none";
-        document.getElementById("menu-section").style.display = "block";
+        authSection.style.display = "none";
+        menuSection.style.display = "block";
     } else {
-        document.getElementById("auth-section").style.display = "block";
-        document.getElementById("menu-section").style.display = "none";
+        authSection.style.display = "block";
+        menuSection.style.display = "none";
         content.innerHTML = "<p>Bitte loggen Sie sich ein.</p>";
     }
 });
 
-// Login Function
-loginButton.addEventListener("click", async () => {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+// Search Page
+function showSearchPage() {
+    content.innerHTML = `
+        <h2>Anlage Suchen</h2>
+        <input type="text" id="search-term" placeholder="Anlagen-ID oder Name">
+        <button id="perform-search">Suchen</button>
+        <div id="search-results"></div>
+    `;
 
-    try {
-        await signInWithEmailAndPassword(auth, email, password);
-        alert("Erfolgreich eingeloggt");
-    } catch (error) {
-        console.error("Fehler beim Anmelden:", error);
-        alert("Fehler beim Anmelden: " + error.message);
-    }
-});
+    document.getElementById("perform-search").addEventListener("click", async () => {
+        const searchTerm = document.getElementById("search-term").value;
+        const q = query(collection(db, "anlagen"), where("name", "==", searchTerm));
+        const querySnapshot = await getDocs(q);
+        const resultsContainer = document.getElementById("search-results");
 
-// Logout Function
-logoutButton.addEventListener("click", async () => {
-    try {
-        await auth.signOut();
-        alert("Erfolgreich ausgeloggt");
-    } catch (error) {
-        console.error("Fehler beim Abmelden:", error);
-        alert("Fehler beim Abmelden: " + error.message);
-    }
-});
-
-// Search Function
-searchSubmit.addEventListener("click", async () => {
-    const searchInput = document.getElementById("search-input").value.trim();
-
-    if (!searchInput) {
-        alert("Bitte geben Sie eine Anlagennummer oder einen Anlagennamen ein.");
-        return;
-    }
-
-    try {
-        const collectionRef = collection(db, "anlagen");
-
-        // Queries for Anlage by ID or Name
-        const qId = query(collectionRef, where("anlageId", "==", searchInput));
-        const qName = query(collectionRef, where("name", "==", searchInput));
-
-        const [idSnapshot, nameSnapshot] = await Promise.all([
-            getDocs(qId),
-            getDocs(qName)
-        ]);
-
-        if (!idSnapshot.empty) {
-            idSnapshot.forEach((doc) => renderAnlage(doc.data()));
-        } else if (!nameSnapshot.empty) {
-            nameSnapshot.forEach((doc) => renderAnlage(doc.data()));
-        } else {
-            alert("Keine Anlage gefunden.");
-        }
-    } catch (error) {
-        console.error("Fehler bei der Suche nach der Anlage:", error);
-        alert("Fehler bei der Suche nach der Anlage.");
-    }
-});
-
-// Create Function
-createSubmit.addEventListener("click", async () => {
-    const name = document.getElementById("create-name").value.trim();
-    const anlageId = document.getElementById("create-id").value.trim();
-    const groupCount = parseInt(document.getElementById("create-groups").value, 10);
-
-    if (!name || !anlageId || isNaN(groupCount) || groupCount <= 0) {
-        alert("Bitte geben Sie gültige Werte ein.");
-        return;
-    }
-
-    try {
-        const meldergruppen = Array.from({ length: groupCount }, (_, i) => ({
-            name: `MG${i + 1}`,
-            meldepunkte: Array.from({ length: 32 }, (_, j) => ({
-                id: j + 1,
-                geprüft: false,
-                prüfquartal: ""
-            }))
-        }));
-
-        await addDoc(collection(db, "anlagen"), {
-            anlageId,
-            name,
-            meldergruppenCount: groupCount,
-            meldergruppen
+        resultsContainer.innerHTML = "";
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            resultsContainer.innerHTML += `<p>${data.name} - ${data.id}</p>`;
         });
-
-        alert("Anlage erfolgreich erstellt.");
-    } catch (error) {
-        console.error("Fehler beim Erstellen der Anlage:", error);
-        alert("Fehler beim Erstellen der Anlage.");
-    }
-});
-
-// Render Anlage Function
-function renderAnlage(anlage) {
-    content.innerHTML = `<h2>Anlage: ${anlage.name}</h2>`;
-    currentAnlage.textContent = `Aktuelle Anlage: ${anlage.name}`;
-
-    const grid = document.createElement("div");
-    grid.classList.add("grid");
-
-    anlage.meldergruppen.forEach((gruppe) => {
-        const groupDiv = document.createElement("div");
-        groupDiv.classList.add("meldergruppe");
-
-        groupDiv.innerHTML = `<h3>${gruppe.name}</h3>`;
-        const melderpunkte = document.createElement("div");
-        melderpunkte.classList.add("melderpunkte");
-
-        gruppe.meldepunkte.forEach((punkt) => {
-            const punktDiv = document.createElement("button");
-            punktDiv.textContent = punkt.id;
-            punktDiv.classList.add(punkt.geprüft ? "checked" : "unchecked");
-            punktDiv.addEventListener("click", async () => {
-                try {
-                    const docRef = doc(db, "anlagen", anlage.anlageId);
-                    punkt.geprüft = !punkt.geprüft;
-                    punkt.prüfquartal = punkt.geprüft ? document.getElementById("quartal-select").value : "";
-
-                    await updateDoc(docRef, { meldergruppen: anlage.meldergruppen });
-
-                    punktDiv.classList.toggle("checked", punkt.geprüft);
-                    punktDiv.classList.toggle("unchecked", !punkt.geprüft);
-                } catch (error) {
-                    console.error("Fehler beim Aktualisieren des Status:", error);
-                    alert("Fehler beim Aktualisieren des Status.");
-                }
-            });
-            melderpunkte.appendChild(punktDiv);
-        });
-
-        groupDiv.appendChild(melderpunkte);
-        grid.appendChild(groupDiv);
     });
+}
 
-    content.appendChild(grid);
+// Create Page
+function showCreatePage() {
+    content.innerHTML = `
+        <h2>Neue Anlage Erstellen</h2>
+        <input type="text" id="new-name" placeholder="Anlagenname">
+        <input type="text" id="new-id" placeholder="Anlagen-ID">
+        <input type="number" id="group-count" placeholder="Anzahl Meldergruppen">
+        <button id="create-new">Anlage Erstellen</button>
+    `;
+
+    document.getElementById("create-new").addEventListener("click", async () => {
+        const name = document.getElementById("new-name").value;
+        const id = document.getElementById("new-id").value;
+        const groupCount = parseInt(document.getElementById("group-count").value, 10);
+
+        const meldergruppen = Array.from({ length: groupCount }, (_, i) => {
+            return {
+                name: `MG${i + 1}`,
+                meldepunkte: Array.from({ length: 32 }, (_, j) => ({
+                    id: j + 1,
+                    geprüft: false,
+                    quartal: null
+                }))
+            };
+        });
+
+        try {
+            await setDoc(doc(db, "anlagen", id), { name, id, meldergruppen });
+            alert("Anlage erfolgreich erstellt!");
+        } catch (error) {
+            alert(`Fehler beim Erstellen der Anlage: ${error.message}`);
+        }
+    });
 }
