@@ -8,37 +8,52 @@
     <script type="module" src="app.js" defer></script>
 </head>
 <body>
-    <h1>Meldepunkte Tracker</h1>
+    <!-- Navigation Bar -->
+    <nav id="navbar">
+        <ul>
+            <li><a href="#" id="home-link">Startseite</a></li>
+            <li><a href="#" id="search-link">Anlagen suchen</a></li>
+            <li><a href="#" id="create-link">Anlage erstellen</a></li>
+            <li><a href="#" id="overview-link">Anlagen Übersicht</a></li>
+        </ul>
+        <div id="auth-section">
+            <button id="login-button">Login</button>
+            <button id="logout-button" style="display:none;">Logout</button>
+        </div>
+    </nav>
 
-    <!-- Authentifizierung Section -->
-    <section id="auth-section">
-        <h2>Authentifizierung</h2>
-        <input type="email" id="email" placeholder="E-Mail">
-        <input type="password" id="password" placeholder="Passwort">
-        <button id="login-button">Einloggen</button>
-        <button id="register-button">Registrieren</button>
-    </section>
+    <!-- Startseite -->
+    <div id="home-page" class="page">
+        <h1>Willkommen im Meldepunkte Tracker</h1>
+        <p>Wählen Sie eine Option aus dem Menü.</p>
+    </div>
 
-    <!-- Search Section (shown after login) -->
-    <section id="search-section" style="display: none;">
-        <h2>Anlage suchen</h2>
-        <input type="text" id="search-field" placeholder="Anlage ID oder Name" />
+    <!-- Anlagen Suche -->
+    <div id="search-page" class="page" style="display:none;">
+        <h2>Suche nach einer Anlage</h2>
+        <input type="text" id="search-input" placeholder="Anlagen ID oder Name">
         <button id="search-button">Suchen</button>
-        <button id="create-button">Neue Anlage erstellen</button>
-    </section>
+        <div id="search-results"></div>
+    </div>
 
-    <!-- Create Anlage Section -->
-    <section id="create-anlage-section" style="display: none;">
+    <!-- Erstellung einer neuen Anlage -->
+    <div id="create-page" class="page" style="display:none;">
         <h2>Neue Anlage erstellen</h2>
-        <input type="text" id="new-anlage-name" placeholder="Name der neuen Anlage" />
-        <button id="create-anlage-button">Erstellen</button>
-        <button id="cancel-create-anlage">Abbrechen</button>
-    </section>
+        <input type="text" id="anlage-name" placeholder="Anlagen Name">
+        <input type="number" id="anlage-number" placeholder="Anlagen Nummer (ID)">
+        <input type="number" id="meldegruppen-count" placeholder="Anzahl der Meldegruppen" min="1">
+        <button id="create-anlage-button">Anlage erstellen</button>
+    </div>
 
-    <!-- Data Section (shown after search) -->
-    <section id="data-section" style="display: none;">
-        <h2>Details zur Anlage</h2>
+    <!-- Anlagen Übersicht -->
+    <div id="overview-page" class="page" style="display:none;">
+        <h2>Übersicht der Anlagen</h2>
         <div id="anlagen-container"></div>
-    </section>
+    </div>
+
+    <!-- Datenansicht für eine Anlage -->
+    <div id="anlage-details-page" class="page" style="display:none;">
+        <div id="anlage-details-container"></div>
+    </div>
 </body>
 </html>
