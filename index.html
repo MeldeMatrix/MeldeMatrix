@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meldepunkte Tracker</title>
-    <!-- Firebase SDK -->
-    <script type="module" src="functions.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <script type="module" src="app.js" defer></script>
 </head>
 <body>
     <h1>Meldepunkte Tracker</h1>
@@ -15,33 +15,18 @@
         <h2>Authentifizierung</h2>
         <input type="email" id="email" placeholder="E-Mail">
         <input type="password" id="password" placeholder="Passwort">
-        <button onclick="login(document.getElementById('email').value, document.getElementById('password').value)">Einloggen</button>
-        <button onclick="register(document.getElementById('email').value, document.getElementById('password').value)">Registrieren</button>
+        <button id="login-button">Einloggen</button>
+        <button id="register-button">Registrieren</button>
     </section>
 
     <!-- Data Section (hidden until login) -->
     <section id="data-section" style="display: none;">
-        <h2>Anlagen Übersicht</h2>
-        <ul id="anlagen-list">
-            <!-- Anlagen werden hier geladen -->
-        </ul>
-
-        <h2>Anlage hinzufügen</h2>
-        <input type="text" id="anlage-id" placeholder="Anlagen-ID">
-        <input type="text" id="anlage-name" placeholder="Anlagen-Name">
-        <button onclick="addAnlage(document.getElementById('anlage-id').value, document.getElementById('anlage-name').value)">Anlage hinzufügen</button>
-
-        <h2>Prüfstatus laden</h2>
-        <input type="text" id="jahr" placeholder="Jahr">
-        <button onclick="loadAnlagen(document.getElementById('anlage-id').value, document.getElementById('jahr').value).then(data => {
-            const output = document.getElementById('output');
-            if (data) {
-                output.textContent = JSON.stringify(data, null, 2);
-            } else {
-                output.textContent = 'Keine Daten gefunden';
-            }
-        });">Laden</button>
-        <pre id="output"></pre>
+        <h2>Willkommen</h2>
+        <p>Sie sind erfolgreich eingeloggt.</p>
+        <h3>Anlagenübersicht</h3>
+        <div id="anlagen-container">
+            <!-- Anlagen werden hier dynamisch geladen -->
+        </div>
     </section>
 </body>
 </html>
