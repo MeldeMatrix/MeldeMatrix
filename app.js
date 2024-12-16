@@ -199,6 +199,7 @@ async function showCreatePage() {
             </div>
         </div>
         <button id="add-meldegruppe">Weitere Meldegruppe hinzufügen</button>
+	<br>
         <button id="create-new">Anlage Erstellen</button>
     `;
 
@@ -268,7 +269,7 @@ async function showAnlagePruefung(anlageId) {
     content.innerHTML = `
         <h2>Anlage: ${anlageData.name} (Anlagen-Nr: ${anlageData.id})</h2>
         <div>
-            <label for="quartal-select">Wählen Sie das Quartal:</label>
+            <label for="quartal-select">Wählen Sie das Prüf-Quartal:</label>
             <select id="quartal-select">
                 <option value="Q1" ${selectedQuartal === 'Q1' ? 'selected' : ''}>Q1</option>
                 <option value="Q2" ${selectedQuartal === 'Q2' ? 'selected' : ''}>Q2</option>
@@ -277,6 +278,7 @@ async function showAnlagePruefung(anlageId) {
             </select>
         </div>
         <div id="quarter-buttons">
+	<label for="quarter-filter">Ansichtsfilter:</label>
             <button class="quarter-filter" data-quarter="Q1">Q1</button>
             <button class="quarter-filter" data-quarter="Q2">Q2</button>
             <button class="quarter-filter" data-quarter="Q3">Q3</button>
