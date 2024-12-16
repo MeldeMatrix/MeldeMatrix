@@ -240,7 +240,6 @@ async function showAnlagePruefung(anlageId) {
             } else {
                 quartalFilter = selectedQuartal; // Sonst das ausgewählte Quartal setzen
             }
-            lastSelectedQuartal = quartalFilter;  // Speichern des zuletzt gewählten Quartals
             renderPage(); // Die Seite nach der Filteränderung neu rendern
         });
 
