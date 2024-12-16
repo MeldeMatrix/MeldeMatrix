@@ -39,6 +39,8 @@ const content = document.getElementById("content");
 
 // Global state for the current Anlage ID
 let currentAnlageId = null;
+let selectedQuartal = 'Q1'; // Default value for the quarter
+let showOnlyOpen = false;   // Filter for open points
 
 // Event Listeners
 document.getElementById("login-button").addEventListener("click", async () => {
@@ -63,9 +65,7 @@ onAuthStateChanged(auth, (user) => {
     if (user) {
         authSection.style.display = "none";
         menuSection.style.display = "block";
-
-	// Nach dem Login direkt zur Seite "Anlage Suchen" navigieren
-        showSearchPage();  // Zeige die Such-Seite an
+        showSearchPage();  // Show search page after login
     } else {
         authSection.style.display = "block";
         menuSection.style.display = "none";
@@ -73,19 +73,17 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// Event listener für den Refresh-Button
+// Event listener for the Refresh button
 document.getElementById("refresh-button").addEventListener("click", () => {
     const currentPage = content.innerHTML;
 
-    // Überprüfen, welche Seite aktuell angezeigt wird
     if (currentPage.includes("Anlage Suchen")) {
-        showSearchPage(); // Zeige die Such-Seite an
+        showSearchPage();
     } else if (currentPage.includes("Neue Anlage Erstellen")) {
-        showCreatePage(); // Zeige die Erstellungs-Seite an
+        showCreatePage();
     } else if (currentPage.includes("Anlage:")) {
-        // Hier müsste die angezeigte Anlage geladen werden. Verwende currentAnlageId, wenn sie gesetzt ist.
         if (currentAnlageId) {
-            showAnlagePruefung(currentAnlageId); // Zeige die Seite für die Prüfung der spezifischen Anlage an
+            showAnlagePruefung(currentAnlageId);
         } else {
             alert("Keine gültige Anlage-ID gefunden.");
         }
@@ -101,7 +99,7 @@ async function showSearchPage() {
         <div id="search-results"></div>
     `;
 
-    // Neu binden der Event-Listener bei Suche
+    // Rebind event listener for search
     document.getElementById("perform-search").addEventListener("click", async () => {
         const searchTerm = document.getElementById("search-term").value.trim().toLowerCase();
         if (!searchTerm) {
@@ -114,7 +112,7 @@ async function showSearchPage() {
             const querySnapshot = await getDocs(q);
             const resultsContainer = document.getElementById("search-results");
 
-            resultsContainer.innerHTML = ""; // Leeren Sie die Ergebnisse vorher
+            resultsContainer.innerHTML = ""; // Clear previous results
 
             let foundResults = [];
             querySnapshot.forEach((doc) => {
@@ -122,7 +120,6 @@ async function showSearchPage() {
                 const nameLower = data.name.toLowerCase();
                 const idLower = data.id.toLowerCase();
 
-                // Überprüfung auf teilweise Übereinstimmungen im Namen oder ID
                 if (nameLower.includes(searchTerm) || idLower.includes(searchTerm)) {
                     foundResults.push(data);
                 }
@@ -143,11 +140,10 @@ async function showSearchPage() {
                     `;
                 });
 
-                // Event listeners für die Buttons neu binden
                 document.querySelectorAll(".open-anlage").forEach((button) => {
                     button.addEventListener("click", (e) => {
                         const anlageId = e.target.getAttribute("data-id");
-                        currentAnlageId = anlageId;  // Die ID speichern
+                        currentAnlageId = anlageId;
                         showAnlagePruefung(anlageId);
                     });
                 });
@@ -168,7 +164,6 @@ async function showCreatePage() {
         <button id="create-new">Anlage Erstellen</button>
     `;
 
-    // Event listener für das Erstellen der Anlage neu binden
     document.getElementById("create-new").addEventListener("click", async () => {
         const name = document.getElementById("new-name").value;
         const id = document.getElementById("new-id").value;
@@ -179,7 +174,7 @@ async function showCreatePage() {
             meldepunkte: Array.from({ length: 32 }, (_, j) => ({
                 id: j + 1,
                 geprüft: false,
-                quartal: null, // Quartal wird für jeden Melder gespeichert
+                quartal: null,
             })),
         }));
 
@@ -192,10 +187,7 @@ async function showCreatePage() {
     });
 }
 
-// Global state variables for filter and status
-let selectedQuartal = 'Q1';  // Standardwert für das Quartal
-let showOnlyOpen = false;    // Zu verwendender Filter für offene Punkte
-
+// Function to display the Anlage Prüfung page
 async function showAnlagePruefung(anlageId) {
     const anlageDoc = await getDoc(doc(db, "anlagen", anlageId));
     if (!anlageDoc.exists()) {
@@ -205,7 +197,7 @@ async function showAnlagePruefung(anlageId) {
 
     const anlageData = anlageDoc.data();
 
-    // Render page with Quartal selection and additional filter buttons
+    // Render page with Quartal selection and additional buttons
     content.innerHTML = `
         <h2>Anlage: ${anlageData.name} (ID: ${anlageData.id})</h2>
         <div>
@@ -217,12 +209,12 @@ async function showAnlagePruefung(anlageId) {
                 <option value="Q4" ${selectedQuartal === 'Q4' ? 'selected' : ''}>Q4</option>
             </select>
         </div>
-        <div>
-            <button class="quarter-button" data-quarter="Q1">Q1</button>
-            <button class="quarter-button" data-quarter="Q2">Q2</button>
-            <button class="quarter-button" data-quarter="Q3">Q3</button>
-            <button class="quarter-button" data-quarter="Q4">Q4</button>
-            <button class="quarter-button" data-quarter="all">Alle</button>
+        <div id="quarter-buttons">
+            <button class="quarter-filter" data-quarter="Q1">Q1</button>
+            <button class="quarter-filter" data-quarter="Q2">Q2</button>
+            <button class="quarter-filter" data-quarter="Q3">Q3</button>
+            <button class="quarter-filter" data-quarter="Q4">Q4</button>
+            <button class="quarter-filter" data-quarter="all">Alle</button>
         </div>
         <button id="filter-open">${showOnlyOpen ? "Alle Punkte anzeigen" : "Nur offene Punkte anzeigen"}</button>
         <button id="reset-melderpunkte">Alle Melderpunkte zurücksetzen</button>
@@ -234,12 +226,11 @@ async function showAnlagePruefung(anlageId) {
                     <h3>${gruppe.name}</h3>
                     <div class="melder-container">
                         ${gruppe.meldepunkte
-                            .filter((melder) => {
-                                if (selectedQuartal !== 'all' && melder.quartal !== selectedQuartal) {
-                                    return false;
-                                }
-                                return showOnlyOpen ? !melder.geprüft : true;
-                            })
+                            .filter((melder) =>
+                                showOnlyOpen
+                                    ? !melder.geprüft
+                                    : true
+                            )
                             .map(
                                 (melder) => `
                             <span>
@@ -253,23 +244,28 @@ async function showAnlagePruefung(anlageId) {
         </div>
     `;
 
-    // Bind Quartal selection event
+    // Event listener for quartal selection (no auto filter)
     document.getElementById("quartal-select").addEventListener("change", (e) => {
         selectedQuartal = e.target.value;
     });
 
-    // Handle quarter button clicks
-    document.querySelectorAll(".quarter-button").forEach((button) => {
+    // Event listeners for quarter buttons
+    document.querySelectorAll(".quarter-filter").forEach((button) => {
         button.addEventListener("click", (e) => {
-            selectedQuartal = e.target.getAttribute("data-quarter");
-            showAnlagePruefung(anlageId); // Seite neu laden
+            const quarter = e.target.getAttribute("data-quarter");
+            if (quarter === 'all') {
+                selectedQuartal = null;
+            } else {
+                selectedQuartal = quarter;
+            }
+            showAnlagePruefung(anlageId); // Re-render with selected quarter
         });
     });
 
     // Handle open filter toggle
     document.getElementById("filter-open").addEventListener("click", () => {
         showOnlyOpen = !showOnlyOpen;
-        showAnlagePruefung(anlageId); // Seite neu laden
+        showAnlagePruefung(anlageId); // Re-render page
     });
 
     // Handle reset melderpunkte button click
@@ -289,7 +285,6 @@ async function showAnlagePruefung(anlageId) {
                 return;
             }
 
-            // Update Melderpunkt with quartal and status
             const updatedGruppen = anlageData.meldergruppen.map((gruppe) => {
                 if (gruppe.name === groupName) {
                     return {
@@ -298,8 +293,8 @@ async function showAnlagePruefung(anlageId) {
                             if (melder.id === melderId) {
                                 return {
                                     ...melder,
-                                    geprüft: checked, // Status des Melders ändern
-                                    quartal: selectedQuartal, // Quartal speichern
+                                    geprüft: checked,
+                                    quartal: selectedQuartal,
                                 };
                             }
                             return melder;
@@ -309,20 +304,18 @@ async function showAnlagePruefung(anlageId) {
                 return gruppe;
             });
 
-            // Update the database
             await setDoc(doc(db, "anlagen", anlageId), {
                 ...anlageData,
                 meldergruppen: updatedGruppen,
             });
 
-            // Re-render the page after update
-            anlageData.meldergruppen = updatedGruppen; // Aktuelle Daten aktualisieren
-            showAnlagePruefung(anlageId); // Seite neu laden
+            anlageData.meldergruppen = updatedGruppen;
+            showAnlagePruefung(anlageId); // Re-render after update
         });
     });
 }
 
-// Helper Function: Calculate Progress
+// Helper function to calculate progress
 function calculateProgress(meldergruppen) {
     const total = meldergruppen.reduce(
         (sum, gruppe) => sum + gruppe.meldepunkte.length,
@@ -348,12 +341,11 @@ async function resetMelderpunkte(anlageId, anlageData) {
         })),
     }));
 
-    // Update the database with reset values
     await setDoc(doc(db, "anlagen", anlageId), {
         ...anlageData,
         meldergruppen: updatedGruppen,
     });
 
     alert("Alle Melderpunkte wurden zurückgesetzt.");
-    showAnlagePruefung(anlageId); // Seite neu laden
+    showAnlagePruefung(anlageId); // Reload the page after reset
 }
