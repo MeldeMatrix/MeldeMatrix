@@ -214,7 +214,7 @@ async function showAnlagePruefung(anlageId) {
                                     ${melder.id}
                                     <button class="toggle-status" data-group="${gruppe.name}" data-melder="${melder.id}" data-status="${melder.geprüft}">${melder.geprüft ? "✔️" : "❌"}</button>
                                 </span>
-                            `).join('')}
+                            `).join('') }
                         </div>
                     </div>
                 `).join('')}
