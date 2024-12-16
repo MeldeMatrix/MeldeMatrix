@@ -91,6 +91,11 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
+// Event listener for the "CheckInspect" link
+document.getElementById("checkinspect-link").addEventListener("click", () => {
+    showSearchPage(); // Zeigt die Such-Seite an
+});
+
 // Event listener for the Refresh button
 document.getElementById("refresh-button").addEventListener("click", () => {
     const currentPage = content.innerHTML;
@@ -277,17 +282,17 @@ async function showAnlagePruefung(anlageId) {
                 <option value="Q3" ${selectedQuartal === 'Q3' ? 'selected' : ''}>Q3</option>
                 <option value="Q4" ${selectedQuartal === 'Q4' ? 'selected' : ''}>Q4</option>
             </select>
+	    <button id="reset-melderpunkte">Alle Meldepunkte zurücksetzen</button>
         </div>
         <div id="quarter-buttons">
 	<label for="quarter-filter">Ansichtsfilter:</label>
+	    <button id="filter-open">${showOnlyOpen ? "Alle Punkte anzeigen" : "Nur offene Punkte anzeigen"}</button>
             <button class="quarter-filter" data-quarter="Q1">Q1</button>
             <button class="quarter-filter" data-quarter="Q2">Q2</button>
             <button class="quarter-filter" data-quarter="Q3">Q3</button>
             <button class="quarter-filter" data-quarter="Q4">Q4</button>
             <button class="quarter-filter" data-quarter="all">Alle</button>
-        <button id="filter-open">${showOnlyOpen ? "Alle Punkte anzeigen" : "Nur offene Punkte anzeigen"}</button>
 	</div>
-        <button id="reset-melderpunkte">Alle Meldepunkte zurücksetzen</button>
         <div id="anlage-pruefung">
             ${anlageData.meldergruppen
                 .filter(gruppe => gruppe.meldepunkte.length > 0) // Nur Meldegruppen mit Meldepunkten anzeigen
