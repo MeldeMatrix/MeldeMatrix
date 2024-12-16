@@ -196,6 +196,7 @@ async function showAnlagePruefung(anlageId) {
         </div>
     `;
 
+    // Filter button logic
     document.getElementById("filter-open").addEventListener("click", () => {
         const showOnlyOpen = document.getElementById("filter-open").dataset.filtered === "true";
         const quartal = document.getElementById("quartal-selector").value;
@@ -203,17 +204,13 @@ async function showAnlagePruefung(anlageId) {
         const filteredGruppen = anlageData.meldergruppen.map((gruppe) => ({
             ...gruppe,
             meldepunkte: gruppe.meldepunkte.filter((melder) => {
-                if (showOnlyOpen) {
-                    return true; // Zeige alle Punkte
-                }
+                if (showOnlyOpen) return true; // Zeige alle
                 return !melder.geprüft || melder.quartal !== quartal;
             }),
         }));
 
-        // Umschalten des Filtermodus
         document.getElementById("filter-open").dataset.filtered = !showOnlyOpen;
 
-        // Aktualisiere die Ansicht
         const melderContainer = document.getElementById("anlage-pruefung");
         melderContainer.innerHTML = filteredGruppen
             .map(
@@ -237,7 +234,7 @@ async function showAnlagePruefung(anlageId) {
             )
             .join("");
 
-        // Reinitialisiere die Status-Toggle-Buttons
+        // Rebind toggle buttons
         document.querySelectorAll(".toggle-status").forEach((button) => {
             button.addEventListener("click", async (e) => {
                 const groupName = e.target.getAttribute("data-group");
@@ -277,17 +274,19 @@ async function showAnlagePruefung(anlageId) {
             });
         });
     });
+}
 
-    document.querySelectorAll(".toggle-status").forEach((button) => {
-        button.addEventListener("click", async (e) => {
-            const groupName = e.target.getAttribute("data-group");
-            const melderId = parseInt(e.target.getAttribute("data-melder"), 10);
-            const currentStatus = e.target.getAttribute("data-status") === "true";
-            const quartal = document.getElementById("quartal-selector").value;
-
-            try {
-                const updatedGruppen = anlageData.meldergruppen.map((gruppe) => {
-                    if (gruppe.name === groupName) {
-                        return {
-                            ...gruppe,
-                            mel
+// Helper Function: Calculate Progress
+function calculateProgress(meldergruppen) {
+    const total = meldergruppen.reduce(
+        (sum, gruppe) => sum + gruppe.meldepunkte.length,
+        0
+    );
+    const checked = meldergruppen.reduce(
+        (sum, gruppe) =>
+            sum +
+            gruppe.meldepunkte.filter((melder) => melder.geprüft).length,
+        0
+    );
+    return ((checked / total) * 100).toFixed(2);
+}
