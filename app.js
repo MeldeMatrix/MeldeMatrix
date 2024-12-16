@@ -85,22 +85,29 @@ function showSearchPage() {
             return;
         }
 
-        const q = query(
-            collection(db, "anlagen"),
-            where("name", "==", searchTerm) // Überprüfen Sie, ob die Felder in Firestore übereinstimmen
-        );
-
         try {
+            const q = query(collection(db, "anlagen"));
             const querySnapshot = await getDocs(q);
             const resultsContainer = document.getElementById("search-results");
 
             resultsContainer.innerHTML = ""; // Leeren Sie die Ergebnisse vorher
 
-            if (querySnapshot.empty) {
+            let foundResults = [];
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const nameLower = data.name.toLowerCase();
+                const idLower = data.id.toLowerCase();
+
+                // Überprüfung auf teilweise Übereinstimmungen im Namen oder ID
+                if (nameLower.includes(searchTerm) || idLower.includes(searchTerm)) {
+                    foundResults.push(data);
+                }
+            });
+
+            if (foundResults.length === 0) {
                 resultsContainer.innerHTML = "<p>Keine Ergebnisse gefunden.</p>";
             } else {
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
+                foundResults.forEach((data) => {
                     resultsContainer.innerHTML += `
                         <div>
                             <p><strong>${data.name}</strong> (ID: ${data.id})</p>
@@ -160,6 +167,84 @@ function showCreatePage() {
             alert(`Fehler beim Erstellen der Anlage: ${error.message}`);
         }
     });
+}
+
+// Anlage Prüfungsseite
+function showAnlagePruefung(anlageId) {
+    content.innerHTML = `
+        <h2>Prüfung der Anlage</h2>
+        <p>Prüfen Sie die Melderpunkte der Anlage mit der ID: ${anlageId}</p>
+        <div id="melderpunkte-list"></div>
+    `;
+
+    loadAnlageDetails(anlageId);
+}
+
+async function loadAnlageDetails(anlageId) {
+    try {
+        const anlageRef = doc(db, "anlagen", anlageId);
+        const anlageDoc = await getDoc(anlageRef);
+        if (anlageDoc.exists()) {
+            const data = anlageDoc.data();
+            const melderpunkteList = document.getElementById("melderpunkte-list");
+            melderpunkteList.innerHTML = ""; // Ergebnisse leeren
+
+            data.meldergruppen.forEach((gruppe, index) => {
+                melderpunkteList.innerHTML += `
+                    <h3>Meldergruppe ${gruppe.name}</h3>
+                    <ul>
+                        ${gruppe.meldepunkte
+                            .map((punkt) => {
+                                const geprüftStatus = punkt.geprüft ? "Ja" : "Nein";
+                                return `
+                                    <li>
+                                        Melderpunkt ${punkt.id} - Geprüft: ${geprüftStatus} 
+                                        <button class="toggle-pruefung" data-id="${punkt.id}" data-gruppe="${gruppe.name}">
+                                            ${punkt.geprüft ? "Zurücksetzen" : "Prüfen"}
+                                        </button>
+                                    </li>
+                                `;
+                            })
+                            .join("")}
+                    </ul>
+                    <hr>
+                `;
+            });
+
+            document.querySelectorAll(".toggle-pruefung").forEach((button) => {
+                button.addEventListener("click", async (e) => {
+                    const punktId = parseInt(e.target.getAttribute("data-id"));
+                    const gruppeName = e.target.getAttribute("data-gruppe");
+                    await togglePruefungStatus(anlageId, gruppeName, punktId);
+                });
+            });
+        } else {
+            alert("Anlage nicht gefunden!");
+        }
+    } catch (error) {
+        alert(`Fehler beim Laden der Anlagendetails: ${error.message}`);
+    }
+}
+
+async function togglePruefungStatus(anlageId, gruppeName, punktId) {
+    try {
+        const anlageRef = doc(db, "anlagen", anlageId);
+        const anlageDoc = await getDoc(anlageRef);
+        const anlageData = anlageDoc.data();
+
+        // Finde die Meldergruppe und den Melderpunkt
+        const meldergruppe = anlageData.meldergruppen.find((gruppe) => gruppe.name === gruppeName);
+        const melderpunkt = meldergruppe.meldepunkte.find((punkt) => punkt.id === punktId);
+
+        // Toggle den Prüfstatus
+        melderpunkt.geprüft = !melderpunkt.geprüft;
+
+        // Speichern der Änderungen
+        await setDoc(anlageRef, anlageData);
+        loadAnlageDetails(anlageId); // Lade die Details neu
+    } catch (error) {
+        alert(`Fehler beim Ändern des Prüfstatus: ${error.message}`);
+    }
 }
 
 // Helper Function: Calculate Progress
