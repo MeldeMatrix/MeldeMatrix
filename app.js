@@ -318,8 +318,7 @@ async function showAnlagePruefung(anlageId) {
                                     : true
                             )
                             .filter((melder) =>
-                                (filterByQuarter ? melder.quartal === filterByQuarter : true) &&
-                                (filterByYear ? melder.prüfjahre.includes(filterByYear) : true) 
+                                (filterByQuarter ? melder.quartal === filterByQuarter : true)
                             )
                             .map(
                                 (melder) => ` 
