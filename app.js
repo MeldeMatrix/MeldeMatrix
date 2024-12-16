@@ -172,7 +172,6 @@ function showCreatePage() {
 // Global state variables for filter and status
 let quartalFilter = null;  // Quartal Filter (manuell über Button aktivierbar)
 let showOnlyOpen = false;  // Zeige nur offene Melder
-let lastSelectedQuartal = null; // Speichert das zuletzt manuell ausgewählte Quartal
 
 async function showAnlagePruefung(anlageId) {
     const anlageDoc = await getDoc(doc(db, "anlagen", anlageId));
