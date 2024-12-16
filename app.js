@@ -239,10 +239,22 @@ async function showCreatePage() {
             const smChecked = groupElement.querySelector(".sm-checkbox").checked;
             
             const meldepunkte = Array.from({ length: melderCount }, (_, i) => ({
-                id: i + 1,
-                geprüft: false,
-                quartal: null,
-            }));
+    id: i + 1,
+    prüfstatus: [
+        {
+            jahr: 2024,
+            quartal: null,
+            geprüft: false
+        },
+        {
+            jahr: 2025,
+            quartal: null,
+            geprüft: false
+        },
+        // Weitere Jahre können hier hinzugefügt werden
+    ],
+}));
+
 
             meldergruppen.push({
                 name: `MG${index + 1}`,
@@ -301,23 +313,24 @@ async function showAnlagePruefung(anlageId) {
                 <div>
                     <h3>${gruppe.name} ${gruppe.zd ? "(ZD)" : ""} ${gruppe.sm ? "(SM)" : ""}</h3>
                     <div class="melder-container">
-                        ${gruppe.meldepunkte
-                            .filter((melder) =>
-                                showOnlyOpen
-                                    ? !melder.geprüft
-                                    : true
-                            )
-                            .filter((melder) =>
-                                filterByQuarter ? melder.quartal === filterByQuarter : true
-                            )
-                            .map(
-                                (melder) => ` 
-                            <span>
-                                ${melder.id}
-                                <input type="checkbox" class="melder-checkbox" data-group="${gruppe.name}" data-melder="${melder.id}" ${melder.geprüft ? 'checked' : ''}>
-                            </span>
-                        `).join('') }
-                    </div>
+    ${gruppe.meldepunkte
+        .filter((melder) =>
+            showOnlyOpen
+                ? melder.prüfstatus.some((status) => !status.geprüft && status.jahr === selectedJahr && status.quartal === selectedQuartal)
+                : true
+        )
+        .filter((melder) =>
+            filterByQuarter ? melder.prüfstatus.some((status) => status.quartal === filterByQuarter) : true
+        )
+        .map(
+            (melder) => `
+                <span>
+                    ${melder.id}
+                    <input type="checkbox" class="melder-checkbox" data-group="${gruppe.name}" data-melder="${melder.id}" 
+                    ${melder.prüfstatus.some((status) => status.jahr === selectedJahr && status.quartal === selectedQuartal && status.geprüft) ? 'checked' : ''}>
+                </span>
+            `).join('')}
+</div>
                 </div>
             `).join('') }
         </div>
@@ -350,44 +363,61 @@ async function showAnlagePruefung(anlageId) {
 
     // Handle melder checkbox toggling
     document.querySelectorAll(".melder-checkbox").forEach((checkbox) => {
-        checkbox.addEventListener("change", async (e) => {
-            const groupName = e.target.getAttribute("data-group");
-            const melderId = parseInt(e.target.getAttribute("data-melder"), 10);
-            const checked = e.target.checked;
+    checkbox.addEventListener("change", async (e) => {
+        const groupName = e.target.getAttribute("data-group");
+        const melderId = parseInt(e.target.getAttribute("data-melder"), 10);
+        const checked = e.target.checked;
 
-            if (!selectedQuartal) {
-                alert("Bitte wählen Sie zuerst das Quartal aus!");
-                return;
-            }
+        if (!selectedQuartal) {
+            alert("Bitte wählen Sie zuerst das Quartal aus!");
+            return;
+        }
 
-            const updatedGruppen = anlageData.meldergruppen.map((gruppe) => {
-                if (gruppe.name === groupName) {
-                    return {
-                        ...gruppe,
-                        meldepunkte: gruppe.meldepunkte.map((melder) => {
-                            if (melder.id === melderId) {
+        const updatedGruppen = anlageData.meldergruppen.map((gruppe) => {
+            if (gruppe.name === groupName) {
+                return {
+                    ...gruppe,
+                    meldepunkte: gruppe.meldepunkte.map((melder) => {
+                        if (melder.id === melderId) {
+                            // Findet das Prüfjahr und das Quartal für den Meldepunkt
+                            const prüfstatus = melder.prüfstatus.find((status) => status.jahr === selectedJahr && status.quartal === selectedQuartal);
+                            if (prüfstatus) {
                                 return {
                                     ...melder,
-                                    geprüft: checked,
-                                    quartal: selectedQuartal,
+                                    prüfstatus: melder.prüfstatus.map((status) =>
+                                        status.jahr === selectedJahr && status.quartal === selectedQuartal
+                                            ? { ...status, geprüft: checked }
+                                            : status
+                                    )
+                                };
+                            } else {
+                                // Falls der Prüfstatus für das Jahr und Quartal noch nicht existiert, erstellen wir ihn
+                                return {
+                                    ...melder,
+                                    prüfstatus: [
+                                        ...melder.prüfstatus,
+                                        { jahr: selectedJahr, quartal: selectedQuartal, geprüft: checked }
+                                    ]
                                 };
                             }
-                            return melder;
-                        }),
-                    };
-                }
-                return gruppe;
-            });
-
-            await setDoc(doc(db, "anlagen", anlageId), {
-                ...anlageData,
-                meldergruppen: updatedGruppen,
-            });
-
-            anlageData.meldergruppen = updatedGruppen;
-            showAnlagePruefung(anlageId); // Re-render after update
+                        }
+                        return melder;
+                    }),
+                };
+            }
+            return gruppe;
         });
+
+        await setDoc(doc(db, "anlagen", anlageId), {
+            ...anlageData,
+            meldergruppen: updatedGruppen,
+        });
+
+        anlageData.meldergruppen = updatedGruppen;
+        showAnlagePruefung(anlageId); // Seite nach dem Update neu rendern
     });
+});
+
 }
 
 // Helper function to calculate progress
