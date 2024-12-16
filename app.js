@@ -214,10 +214,10 @@ async function showAnlagePruefung(anlageId) {
                                 ${melder.id}
                                 <input type="checkbox" class="melder-checkbox" data-group="${gruppe.name}" data-melder="${melder.id}" ${melder.geprüft ? 'checked' : ''}>
                             </span>
-                        `).join('')}
+                        `).join('') }
                     </div>
                 </div>
-            `).join('')}
+            `).join('') }
         </div>
     `;
 
