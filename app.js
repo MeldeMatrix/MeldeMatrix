@@ -217,8 +217,8 @@ async function showAnlagePruefung(anlageId) {
                             `).join('')}
                         </div>
                     </div>
-                `).join('')}`
-		</div>
+                `).join('')}
+            </div>
         `;
 
         bindButtons();
@@ -231,16 +231,20 @@ async function showAnlagePruefung(anlageId) {
             renderPage();
         });
 
-        // Handle the "Quartal filtern" button toggle
+        // Handle the "Quartal filtern" button click
         document.getElementById("filter-quartal").addEventListener("click", () => {
             const selectedQuartal = document.getElementById("quartal-selector").value;
-            quartalFilter = quartalFilter === selectedQuartal ? null : selectedQuartal;
-            renderPage();
+            if (quartalFilter === selectedQuartal) {
+                quartalFilter = null; // If the same quartal is selected, remove the filter
+            } else {
+                quartalFilter = selectedQuartal; // Otherwise, set the selected quartal
+            }
+            renderPage(); // Re-render the page after applying the filter
         });
 
-        // Handle the Quartal selector change without filtering immediately
+        // Handle the Quartal selector change without filtering automatically
         document.getElementById("quartal-selector").addEventListener("change", (e) => {
-            quartalFilter = e.target.value; // Set the quartal but do not filter automatically
+            quartalFilter = e.target.value; // Just update the quartalFilter state without rendering
         });
 
         // Event listeners for toggling the Prüfzstatus
