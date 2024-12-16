@@ -157,6 +157,7 @@ async function showAnlagePruefung(anlageId) {
     }
 
     const anlageData = anlageDoc.data();
+    let showOnlyOpen = false; // State for showing only open points
 
     const renderPage = () => {
         content.innerHTML = `
@@ -167,7 +168,7 @@ async function showAnlagePruefung(anlageId) {
                 <option value="Q3">Q3</option>
                 <option value="Q4">Q4</option>
             </select>
-            <button id="filter-open" data-filtered="false">Nur offene Punkte anzeigen</button>
+            <button id="filter-open">${showOnlyOpen ? "Alle Punkte anzeigen" : "Nur offene Punkte anzeigen"}</button>
             <div id="anlage-pruefung">
                 ${anlageData.meldergruppen
                     .map(
@@ -176,6 +177,9 @@ async function showAnlagePruefung(anlageId) {
                         <h3>${gruppe.name}</h3>
                         <div class="melder-container">
                             ${gruppe.meldepunkte
+                                .filter((melder) =>
+                                    showOnlyOpen ? !melder.geprüft : true
+                                )
                                 .map(
                                     (melder) => `
                                 <span>
@@ -197,11 +201,15 @@ async function showAnlagePruefung(anlageId) {
             </div>
         `;
 
-        // Bind buttons after rendering
-        bindStatusToggleButtons();
+        bindButtons();
     };
 
-    const bindStatusToggleButtons = () => {
+    const bindButtons = () => {
+        document.getElementById("filter-open").addEventListener("click", () => {
+            showOnlyOpen = !showOnlyOpen;
+            renderPage();
+        });
+
         document.querySelectorAll(".toggle-status").forEach((button) => {
             button.addEventListener("click", async (e) => {
                 const groupName = e.target.getAttribute("data-group");
