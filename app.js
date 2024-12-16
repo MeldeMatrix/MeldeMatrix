@@ -10,9 +10,11 @@ import {
   getFirestore,
   collection,
   getDocs,
-  getDoc,
-  setDoc,
   doc,
+  setDoc,
+  updateDoc,
+  query,
+  where,
 } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
 
 // Firebase Configuration
@@ -30,253 +32,223 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// DOMContentLoaded Event Listener
-document.addEventListener("DOMContentLoaded", () => {
-  const content = document.getElementById("content");
+// DOM Elements
+const loginButton = document.getElementById("login-button");
+const logoutButton = document.getElementById("logout-button");
+const createAnlageButton = document.getElementById("create-anlage-button");
+const searchButton = document.getElementById("search-button");
+const anlagenContainer = document.getElementById("anlagen-container");
+const quartalSelector = document.getElementById("quartal-selector");
+const filterOpenButton = document.getElementById("filter-open");
+const scrollToTopButton = document.getElementById("scroll-to-top");
+const melderContainer = document.getElementById("melder-container");
+const currentAnlageHeader = document.getElementById("current-anlage-header");
 
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      showStartPage();
-    } else {
-      showLoginPage();
-    }
-  });
+let currentUser = null;
+let currentAnlage = null;
+let currentQuartal = "Q1";
+let showOnlyOpen = false;
+
+// Monitor Auth State
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    currentUser = user;
+    showMainMenu();
+  } else {
+    currentUser = null;
+    showLogin();
+  }
 });
 
-// Login Page Function
-function showLoginPage() {
-  const content = document.getElementById("content");
-  content.innerHTML = `
-    <h2>Login</h2>
-    <input type="email" id="email" placeholder="E-Mail" />
-    <input type="password" id="password" placeholder="Passwort" />
-    <button id="login-button">Einloggen</button>
-    <button id="register-button">Registrieren</button>
-  `;
+// Login Function
+loginButton?.addEventListener("click", async () => {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-  document.getElementById("login-button").addEventListener("click", async () => {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    alert("Erfolgreich eingeloggt");
+  } catch (error) {
+    console.error("Fehler beim Anmelden:", error);
+    alert("Fehler beim Anmelden: " + error.message);
+  }
+});
 
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch (error) {
-      alert("Fehler beim Anmelden: " + error.message);
-    }
-  });
+// Logout Function
+logoutButton?.addEventListener("click", async () => {
+  try {
+    await auth.signOut();
+    alert("Erfolgreich abgemeldet");
+  } catch (error) {
+    console.error("Fehler beim Abmelden:", error);
+  }
+});
 
-  document
-    .getElementById("register-button")
-    .addEventListener("click", async () => {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+// Create Anlage
+createAnlageButton?.addEventListener("click", async () => {
+  const anlageName = prompt("Name der Anlage eingeben:");
+  const anlageID = prompt("Anlagen-ID eingeben:");
+  const meldergruppenCount = parseInt(
+    prompt("Anzahl der Meldergruppen eingeben (maximal 20):"),
+    10
+  );
 
-      try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        alert("Registrierung erfolgreich");
-      } catch (error) {
-        alert("Fehler bei der Registrierung: " + error.message);
-      }
-    });
-}
-
-// Start Page Function
-function showStartPage() {
-  const content = document.getElementById("content");
-  content.innerHTML = `
-    <h2>Willkommen im Anlagenmanager</h2>
-    <button id="search-anlage">Anlage suchen</button>
-    <button id="create-anlage">Neue Anlage erstellen</button>
-  `;
-
-  document.getElementById("search-anlage").addEventListener("click", showSearchAnlage);
-  document.getElementById("create-anlage").addEventListener("click", showCreateAnlage);
-}
-
-// Search Anlage Function
-function showSearchAnlage() {
-  const content = document.getElementById("content");
-  content.innerHTML = `
-    <h2>Anlage suchen</h2>
-    <input type="text" id="search-input" placeholder="Name oder ID eingeben" />
-    <button id="search-button">Suchen</button>
-    <div id="search-results"></div>
-  `;
-
-  document.getElementById("search-button").addEventListener("click", async () => {
-    const query = document.getElementById("search-input").value;
-    const resultsDiv = document.getElementById("search-results");
-
-    const querySnapshot = await getDocs(collection(db, "anlagen"));
-    const results = [];
-
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      if (data.name.includes(query) || data.id.includes(query)) {
-        results.push(data);
-      }
-    });
-
-    resultsDiv.innerHTML = results
-      .map(
-        (anlage) => `
-          <div>
-            <h3>${anlage.name} (ID: ${anlage.id})</h3>
-            <button onclick="showAnlagePruefung('${anlage.id}')">Prüfen</button>
-          </div>
-        `
-      )
-      .join("");
-  });
-}
-
-// Create Anlage Function
-function showCreateAnlage() {
-  const content = document.getElementById("content");
-  content.innerHTML = `
-    <h2>Neue Anlage erstellen</h2>
-    <input type="text" id="anlage-name" placeholder="Anlagenname" />
-    <input type="text" id="anlage-id" placeholder="Anlagen-ID" />
-    <input type="number" id="gruppe-count" placeholder="Anzahl Meldergruppen" min="1" />
-    <button id="create-button">Erstellen</button>
-  `;
-
-  document.getElementById("create-button").addEventListener("click", async () => {
-    const name = document.getElementById("anlage-name").value;
-    const id = document.getElementById("anlage-id").value;
-    const gruppeCount = parseInt(document.getElementById("gruppe-count").value, 10);
-
-    const meldergruppen = Array.from({ length: gruppeCount }, (_, i) => ({
-      name: `MG${i + 1}`,
-      meldepunkte: Array.from({ length: 32 }, (_, j) => ({
-        id: j + 1,
-        geprüft: false,
-        quartal: null,
-      })),
-    }));
-
-    try {
-      await setDoc(doc(db, "anlagen", id), {
-        id,
-        name,
-        meldergruppen,
-      });
-      alert("Anlage erfolgreich erstellt!");
-      showStartPage();
-    } catch (error) {
-      alert("Fehler beim Erstellen der Anlage: " + error.message);
-    }
-  });
-}
-
-// Show Prüfung Page
-async function showAnlagePruefung(anlageId) {
-  const anlageDoc = await getDoc(doc(db, "anlagen", anlageId));
-  if (!anlageDoc.exists()) {
-    alert("Anlage nicht gefunden!");
+  if (!anlageName || !anlageID || isNaN(meldergruppenCount)) {
+    alert("Ungültige Eingaben. Bitte erneut versuchen.");
     return;
   }
 
-  const anlageData = anlageDoc.data();
+  try {
+    const meldergruppen = [];
+    for (let i = 1; i <= meldergruppenCount; i++) {
+      const meldepunkte = Array.from({ length: 32 }, (_, idx) => ({
+        id: idx + 1,
+        geprüft: false,
+        quartal: "",
+        timestamp: null,
+      }));
+      meldergruppen.push({ name: `MG${i}`, meldepunkte });
+    }
 
-  // Initial Rendering of the Prüfung Page
-  renderPruefungsPage(anlageData);
-
-  // Event Listener for the "Nur offene Punkte" Filter
-  document.getElementById("filter-open").addEventListener("click", () => {
-    const showOnlyOpen = document
-      .getElementById("filter-open")
-      .classList.toggle("active");
-    renderPruefungsPage(anlageData, showOnlyOpen);
-  });
-
-  // Event Listener for Prüfstatus Änderungen
-  document.querySelectorAll(".toggle-status").forEach((button) => {
-    button.addEventListener("click", async (e) => {
-      const groupName = e.target.getAttribute("data-group");
-      const melderId = parseInt(e.target.getAttribute("data-melder"), 10);
-      const currentStatus = e.target.getAttribute("data-status") === "true";
-      const quartal = document.getElementById("quartal-selector").value;
-
-      try {
-        // Update Prüfstatus im Datenbank
-        const updatedGruppen = anlageData.meldergruppen.map((gruppe) => {
-          if (gruppe.name === groupName) {
-            return {
-              ...gruppe,
-              meldepunkte: gruppe.meldepunkte.map((melder) => {
-                if (melder.id === melderId) {
-                  return {
-                    ...melder,
-                    geprüft: !currentStatus,
-                    quartal: !currentStatus ? quartal : null,
-                  };
-                }
-                return melder;
-              }),
-            };
-          }
-          return gruppe;
-        });
-
-        await setDoc(doc(db, "anlagen", anlageId), {
-          ...anlageData,
-          meldergruppen: updatedGruppen,
-        });
-
-        // Update UI ohne Popup
-        anlageData.meldergruppen = updatedGruppen;
-        renderPruefungsPage(
-          anlageData,
-          document.getElementById("filter-open").classList.contains("active")
-        );
-      } catch (error) {
-        alert(`Fehler beim Aktualisieren des Prüfstatus: ${error.message}`);
-      }
+    await setDoc(doc(db, "anlagen", anlageID), {
+      id: anlageID,
+      name: anlageName,
+      meldergruppen,
     });
+
+    alert("Anlage erfolgreich erstellt");
+  } catch (error) {
+    console.error("Fehler beim Erstellen der Anlage:", error);
+    alert("Fehler beim Erstellen der Anlage: " + error.message);
+  }
+});
+
+// Search Anlage
+searchButton?.addEventListener("click", async () => {
+  const searchQuery = document.getElementById("search-input").value.trim();
+  if (!searchQuery) {
+    alert("Bitte geben Sie einen Suchbegriff ein.");
+    return;
+  }
+
+  try {
+    const q = query(
+      collection(db, "anlagen"),
+      where("id", "==", searchQuery)
+    );
+    const querySnapshot = await getDocs(q);
+
+    anlagenContainer.innerHTML = "";
+    querySnapshot.forEach((doc) => {
+      const anlage = doc.data();
+      const div = document.createElement("div");
+      div.className = "anlage-item";
+      div.textContent = `${anlage.name} (ID: ${anlage.id})`;
+      div.addEventListener("click", () => {
+        currentAnlage = anlage;
+        showAnlageView(anlage);
+      });
+      anlagenContainer.appendChild(div);
+    });
+
+    if (querySnapshot.empty) {
+      alert("Keine Anlagen gefunden.");
+    }
+  } catch (error) {
+    console.error("Fehler bei der Suche nach Anlagen:", error);
+    alert("Fehler bei der Suche: " + error.message);
+  }
+});
+
+// Show Main Menu
+function showMainMenu() {
+  document.getElementById("login-section").style.display = "none";
+  document.getElementById("main-menu").style.display = "block";
+}
+
+// Show Login Page
+function showLogin() {
+  document.getElementById("login-section").style.display = "block";
+  document.getElementById("main-menu").style.display = "none";
+}
+
+// Show Anlage View
+function showAnlageView(anlage) {
+  document.getElementById("main-menu").style.display = "none";
+  document.getElementById("anlage-view").style.display = "block";
+  currentAnlageHeader.textContent = `Anlage: ${anlage.name} (ID: ${anlage.id})`;
+
+  renderMeldergruppen(anlage.meldergruppen);
+}
+
+// Render Meldergruppen
+function renderMeldergruppen(meldergruppen) {
+  melderContainer.innerHTML = "";
+  meldergruppen.forEach((gruppe) => {
+    const groupDiv = document.createElement("div");
+    groupDiv.className = "meldergruppe";
+
+    const header = document.createElement("h4");
+    header.textContent = gruppe.name;
+    groupDiv.appendChild(header);
+
+    const grid = document.createElement("div");
+    grid.className = "melder-container";
+
+    gruppe.meldepunkte.forEach((melder) => {
+      const span = document.createElement("span");
+      span.textContent = melder.id;
+      const toggleButton = document.createElement("button");
+      toggleButton.textContent = melder.geprüft ? "✔️" : "❌";
+      toggleButton.className = "toggle-status";
+
+      toggleButton.addEventListener("click", async () => {
+        try {
+          melder.geprüft = !melder.geprüft;
+          melder.quartal = currentQuartal;
+          melder.timestamp = melder.geprüft ? new Date().toISOString() : null;
+
+          await updateDoc(doc(db, "anlagen", currentAnlage.id), {
+            meldergruppen,
+          });
+
+          toggleButton.textContent = melder.geprüft ? "✔️" : "❌";
+        } catch (error) {
+          console.error("Fehler beim Aktualisieren des Status:", error);
+        }
+      });
+
+      span.appendChild(toggleButton);
+      grid.appendChild(span);
+    });
+
+    groupDiv.appendChild(grid);
+    melderContainer.appendChild(groupDiv);
   });
 }
 
-// Helper Function: Render Prüfung Page
-function renderPruefungsPage(anlageData, showOnlyOpen = false) {
-  const content = document.getElementById("content");
+// Filter Open Points
+filterOpenButton?.addEventListener("click", () => {
+  showOnlyOpen = !showOnlyOpen;
+  filterOpenButton.classList.toggle("active", showOnlyOpen);
 
-  // Filter Meldergruppen basierend auf dem Status
-  const filteredGruppen = showOnlyOpen
-    ? anlageData.meldergruppen.map((gruppe) => ({
-          ...gruppe,
-          meldepunkte: gruppe.meldepunkte.filter((melder) => !melder.geprüft),
-      }))
-    : anlageData.meldergruppen;
+  if (currentAnlage) {
+    const filteredGroups = currentAnlage.meldergruppen.map((gruppe) => ({
+      ...gruppe,
+      meldepunkte: gruppe.meldepunkte.filter(
+        (melder) => !melder.geprüft || !showOnlyOpen
+      ),
+    }));
+    renderMeldergruppen(filteredGroups);
+  }
+});
 
-  content.innerHTML = `
-      <h2>Anlage: ${anlageData.name} (ID: ${anlageData.id})</h2>
-      <select id="quartal-selector">
-          <option value="Q1">Q1</option>
-          <option value="Q2">Q2</option>
-          <option value="Q3">Q3</option>
-          <option value="Q4">Q4</option>
-      </select>
-      <button id="filter-open" class="${showOnlyOpen ? "active" : ""}">
-          Nur offene Punkte anzeigen
-      </button>
-      <div id="anlage-pruefung">
-          ${filteredGruppen
-            .map(
-              (gruppe) => `
-              <div>
-                  <h3>${gruppe.name}</h3>
-                  <div class="melder-container">
-                      ${gruppe.meldepunkte
-                        .map(
-                          (melder) => `
-                          <span>
-                              ${melder.id}
-                              <button class="toggle-status" data-group="${
-                                gruppe.name
-                              }" data-melder="${melder.id}" data-status="${
-                                melder.geprüft
-                              }">
-                                  ${melder.geprüft ? "✔️" : "❌"}
-                              </button>
-                          </span>
+// Scroll-to-Top Functionality
+scrollToTopButton?.addEventListener("click", () => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+// Quartal Selector
+quartalSelector?.addEventListener("change", (e) => {
+  currentQuartal = e.target.value;
+});
