@@ -257,6 +257,7 @@ async function showAnlagePruefung(anlageId) {
                     });
 
                     anlageData.meldergruppen = updatedGruppen; // Update local data
+                    quartalFilter = quartal; // Retain quartal filter
                     renderPage(); // Re-render the page with updated data
                 } catch (error) {
                     alert(`Fehler beim Aktualisieren des Prüfstatus: ${error.message}`);
