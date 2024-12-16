@@ -170,7 +170,6 @@ function showCreatePage() {
 }
 
 // Global state variables for filter and status
-let quartalFilter = null;  // Quartal Filter (manuell über Button aktivierbar)
 let showOnlyOpen = false;  // Zeige nur offene Melder
 
 async function showAnlagePruefung(anlageId) {
@@ -185,14 +184,7 @@ async function showAnlagePruefung(anlageId) {
     const renderPage = () => {
         content.innerHTML = `
             <h2>Anlage: ${anlageData.name} (ID: ${anlageData.id})</h2>
-            <select id="quartal-selector">
-                <option value="Q1" ${quartalFilter === 'Q1' ? 'selected' : ''}>Q1</option>
-                <option value="Q2" ${quartalFilter === 'Q2' ? 'selected' : ''}>Q2</option>
-                <option value="Q3" ${quartalFilter === 'Q3' ? 'selected' : ''}>Q3</option>
-                <option value="Q4" ${quartalFilter === 'Q4' ? 'selected' : ''}>Q4</option>
-            </select>
             <button id="filter-open">${showOnlyOpen ? "Alle Punkte anzeigen" : "Nur offene Punkte anzeigen"}</button>
-            <button id="filter-quartal">${quartalFilter ? `Quartal ${quartalFilter} anzeigen` : "Quartal filtern"}</button>
             <div id="anlage-pruefung">
                 ${anlageData.meldergruppen
                     .map(
@@ -204,9 +196,7 @@ async function showAnlagePruefung(anlageId) {
                                 .filter((melder) =>
                                     showOnlyOpen
                                         ? !melder.geprüft
-                                        : true &&
-                                          (!quartalFilter ||
-                                              melder.quartal === quartalFilter)
+                                        : true
                                 )
                                 .map(
                                     (melder) => `
@@ -231,29 +221,12 @@ async function showAnlagePruefung(anlageId) {
             renderPage();
         });
 
-        // Handle the "Quartal filtern" button click
-        document.getElementById("filter-quartal").addEventListener("click", () => {
-            const selectedQuartal = document.getElementById("quartal-selector").value;
-            if (quartalFilter === selectedQuartal) {
-                quartalFilter = null; // Wenn das gleiche Quartal erneut gewählt wird, den Filter entfernen
-            } else {
-                quartalFilter = selectedQuartal; // Sonst das ausgewählte Quartal setzen
-            }
-            renderPage(); // Die Seite nach der Filteränderung neu rendern
-        });
-
-        // Handle the Quartal selector change without filtering automatically
-        document.getElementById("quartal-selector").addEventListener("change", (e) => {
-            quartalFilter = e.target.value; // Aktualisiert nur den Wert des quartalFilter ohne Filter anzuwenden
-        });
-
         // Event listeners for toggling the Prüfzstatus
         document.querySelectorAll(".toggle-status").forEach((button) => {
             button.addEventListener("click", async (e) => {
                 const groupName = e.target.getAttribute("data-group");
                 const melderId = parseInt(e.target.getAttribute("data-melder"), 10);
                 const currentStatus = e.target.getAttribute("data-status") === "true";
-                const quartal = document.getElementById("quartal-selector").value; // Hier das aktuelle Quartal für die Änderung verwenden
 
                 try {
                     const updatedGruppen = anlageData.meldergruppen.map((gruppe) => {
@@ -265,7 +238,6 @@ async function showAnlagePruefung(anlageId) {
                                         return {
                                             ...melder,
                                             geprüft: !currentStatus, // Status umkehren
-                                            quartal: quartal,  // Quartal bleibt erhalten
                                         };
                                     }
                                     return melder;
@@ -281,7 +253,7 @@ async function showAnlagePruefung(anlageId) {
                     });
 
                     anlageData.meldergruppen = updatedGruppen; // Aktuelle Daten aktualisieren
-                    renderPage(); // Seite neu rendern ohne den Quartalsfilter zu beeinflussen
+                    renderPage(); // Seite neu rendern
                 } catch (error) {
                     alert(`Fehler beim Aktualisieren des Prüfstatus: ${error.message}`);
                 }
