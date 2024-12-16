@@ -156,7 +156,7 @@ function showCreatePage() {
             meldepunkte: Array.from({ length: 32 }, (_, j) => ({
                 id: j + 1,
                 geprüft: false,
-                quartal: null,
+                quartal: null, // Quartal wird für jeden Melder gespeichert
             })),
         }));
 
@@ -202,6 +202,12 @@ async function showAnlagePruefung(anlageId) {
                                     (melder) => `
                                 <span>
                                     ${melder.id}
+                                    <select class="quartal-selector" data-group="${gruppe.name}" data-melder="${melder.id}">
+                                        <option value="Q1" ${melder.quartal === 'Q1' ? 'selected' : ''}>Q1</option>
+                                        <option value="Q2" ${melder.quartal === 'Q2' ? 'selected' : ''}>Q2</option>
+                                        <option value="Q3" ${melder.quartal === 'Q3' ? 'selected' : ''}>Q3</option>
+                                        <option value="Q4" ${melder.quartal === 'Q4' ? 'selected' : ''}>Q4</option>
+                                    </select>
                                     <button class="toggle-status" data-group="${gruppe.name}" data-melder="${melder.id}" data-status="${melder.geprüft}">${melder.geprüft ? "✔️" : "❌"}</button>
                                 </span>
                             `).join('') }
@@ -219,6 +225,41 @@ async function showAnlagePruefung(anlageId) {
         document.getElementById("filter-open").addEventListener("click", () => {
             showOnlyOpen = !showOnlyOpen;
             renderPage();
+        });
+
+        // Handle the Quartal selection change
+        document.querySelectorAll(".quartal-selector").forEach((select) => {
+            select.addEventListener("change", async (e) => {
+                const groupName = e.target.getAttribute("data-group");
+                const melderId = parseInt(e.target.getAttribute("data-melder"), 10);
+                const selectedQuartal = e.target.value;
+
+                const updatedGruppen = anlageData.meldergruppen.map((gruppe) => {
+                    if (gruppe.name === groupName) {
+                        return {
+                            ...gruppe,
+                            meldepunkte: gruppe.meldepunkte.map((melder) => {
+                                if (melder.id === melderId) {
+                                    return {
+                                        ...melder,
+                                        quartal: selectedQuartal, // Quartal wird gespeichert
+                                    };
+                                }
+                                return melder;
+                            }),
+                        };
+                    }
+                    return gruppe;
+                });
+
+                await setDoc(doc(db, "anlagen", anlageId), {
+                    ...anlageData,
+                    meldergruppen: updatedGruppen,
+                });
+
+                anlageData.meldergruppen = updatedGruppen; // Aktuelle Daten aktualisieren
+                renderPage(); // Seite neu rendern
+            });
         });
 
         // Event listeners for toggling the Prüfzstatus
