@@ -158,6 +158,7 @@ async function showAnlagePruefung(anlageId) {
 
     const anlageData = anlageDoc.data();
     let showOnlyOpen = false; // State for showing only open points
+    let quartalFilter = null; // State for showing a specific quartal
 
     const renderPage = () => {
         content.innerHTML = `
@@ -169,6 +170,7 @@ async function showAnlagePruefung(anlageId) {
                 <option value="Q4">Q4</option>
             </select>
             <button id="filter-open">${showOnlyOpen ? "Alle Punkte anzeigen" : "Nur offene Punkte anzeigen"}</button>
+            <button id="filter-quartal">${quartalFilter ? `Quartal ${quartalFilter} anzeigen` : "Quartal filtern"}</button>
             <div id="anlage-pruefung">
                 ${anlageData.meldergruppen
                     .map(
@@ -178,7 +180,11 @@ async function showAnlagePruefung(anlageId) {
                         <div class="melder-container">
                             ${gruppe.meldepunkte
                                 .filter((melder) =>
-                                    showOnlyOpen ? !melder.geprüft : true
+                                    showOnlyOpen
+                                        ? !melder.geprüft
+                                        : true &&
+                                          (!quartalFilter ||
+                                              melder.quartal === quartalFilter)
                                 )
                                 .map(
                                     (melder) => `
@@ -207,6 +213,13 @@ async function showAnlagePruefung(anlageId) {
     const bindButtons = () => {
         document.getElementById("filter-open").addEventListener("click", () => {
             showOnlyOpen = !showOnlyOpen;
+            renderPage();
+        });
+
+        document.getElementById("filter-quartal").addEventListener("click", () => {
+            const selectedQuartal =
+                document.getElementById("quartal-selector").value;
+            quartalFilter = quartalFilter === selectedQuartal ? null : selectedQuartal;
             renderPage();
         });
 
