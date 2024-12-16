@@ -200,6 +200,7 @@ async function showCreatePage() {
         </div>
         <button id="add-meldegruppe">Weitere Meldegruppe hinzufügen</button>
 	<br>
+	<br>
         <button id="create-new">Anlage Erstellen</button>
     `;
 
@@ -284,8 +285,8 @@ async function showAnlagePruefung(anlageId) {
             <button class="quarter-filter" data-quarter="Q3">Q3</button>
             <button class="quarter-filter" data-quarter="Q4">Q4</button>
             <button class="quarter-filter" data-quarter="all">Alle</button>
-        </div>
         <button id="filter-open">${showOnlyOpen ? "Alle Punkte anzeigen" : "Nur offene Punkte anzeigen"}</button>
+	</div>
         <button id="reset-melderpunkte">Alle Meldepunkte zurücksetzen</button>
         <div id="anlage-pruefung">
             ${anlageData.meldergruppen
