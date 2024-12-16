@@ -170,7 +170,7 @@ function showCreatePage() {
 }
 
 // Global state variables for filter and status
-let selectedQuartal = null;  // Zu wählendes Quartal
+let selectedQuartal = 'Q1';  // Standardwert für das Quartal
 let showOnlyOpen = false;    // Zu verwendender Filter für offene Punkte
 
 async function showAnlagePruefung(anlageId) {
@@ -188,10 +188,10 @@ async function showAnlagePruefung(anlageId) {
         <div>
             <label for="quartal-select">Wählen Sie das Quartal:</label>
             <select id="quartal-select">
-                <option value="Q1">Q1</option>
-                <option value="Q2">Q2</option>
-                <option value="Q3">Q3</option>
-                <option value="Q4">Q4</option>
+                <option value="Q1" ${selectedQuartal === 'Q1' ? 'selected' : ''}>Q1</option>
+                <option value="Q2" ${selectedQuartal === 'Q2' ? 'selected' : ''}>Q2</option>
+                <option value="Q3" ${selectedQuartal === 'Q3' ? 'selected' : ''}>Q3</option>
+                <option value="Q4" ${selectedQuartal === 'Q4' ? 'selected' : ''}>Q4</option>
             </select>
         </div>
         <button id="filter-open">${showOnlyOpen ? "Alle Punkte anzeigen" : "Nur offene Punkte anzeigen"}</button>
@@ -283,10 +283,10 @@ async function showAnlagePruefung(anlageId) {
             <div>
                 <label for="quartal-select">Wählen Sie das Quartal:</label>
                 <select id="quartal-select">
-                    <option value="Q1">Q1</option>
-                    <option value="Q2">Q2</option>
-                    <option value="Q3">Q3</option>
-                    <option value="Q4">Q4</option>
+                    <option value="Q1" ${selectedQuartal === 'Q1' ? 'selected' : ''}>Q1</option>
+                    <option value="Q2" ${selectedQuartal === 'Q2' ? 'selected' : ''}>Q2</option>
+                    <option value="Q3" ${selectedQuartal === 'Q3' ? 'selected' : ''}>Q3</option>
+                    <option value="Q4" ${selectedQuartal === 'Q4' ? 'selected' : ''}>Q4</option>
                 </select>
             </div>
             <button id="filter-open">${showOnlyOpen ? "Alle Punkte anzeigen" : "Nur offene Punkte anzeigen"}</button>
