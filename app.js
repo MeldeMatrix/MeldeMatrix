@@ -41,6 +41,7 @@ const content = document.getElementById("content");
 let currentAnlageId = null;
 let selectedQuartal = 'Q1'; // Default value for the quarter
 let showOnlyOpen = false;   // Filter for open points
+let filterByQuarter = null; // To store which quarter to filter the display (via buttons)
 
 // Event Listeners
 document.getElementById("login-button").addEventListener("click", async () => {
@@ -231,6 +232,9 @@ async function showAnlagePruefung(anlageId) {
                                     ? !melder.geprüft
                                     : true
                             )
+                            .filter((melder) =>
+                                filterByQuarter ? melder.quartal === filterByQuarter : true
+                            )
                             .map(
                                 (melder) => `
                             <span>
@@ -244,21 +248,17 @@ async function showAnlagePruefung(anlageId) {
         </div>
     `;
 
-    // Event listener for quartal selection (no auto filter)
+    // Event listener for quartal selection (to filter for testing)
     document.getElementById("quartal-select").addEventListener("change", (e) => {
         selectedQuartal = e.target.value;
     });
 
-    // Event listeners for quarter buttons
+    // Event listeners for quarter buttons (to filter display by quarter)
     document.querySelectorAll(".quarter-filter").forEach((button) => {
         button.addEventListener("click", (e) => {
             const quarter = e.target.getAttribute("data-quarter");
-            if (quarter === 'all') {
-                selectedQuartal = null;
-            } else {
-                selectedQuartal = quarter;
-            }
-            showAnlagePruefung(anlageId); // Re-render with selected quarter
+            filterByQuarter = quarter === 'all' ? null : quarter;
+            showAnlagePruefung(anlageId); // Re-render with selected filter
         });
     });
 
