@@ -171,6 +171,7 @@ function showCreatePage() {
 
 // Global state variables for filter and status
 let selectedQuartal = null;  // Zu wählendes Quartal
+let showOnlyOpen = false;    // Zu verwendender Filter für offene Punkte
 
 async function showAnlagePruefung(anlageId) {
     const anlageDoc = await getDoc(doc(db, "anlagen", anlageId));
@@ -193,7 +194,7 @@ async function showAnlagePruefung(anlageId) {
                 <option value="Q4">Q4</option>
             </select>
         </div>
-        <button id="filter-open">Nur offene Punkte anzeigen</button>
+        <button id="filter-open">${showOnlyOpen ? "Alle Punkte anzeigen" : "Nur offene Punkte anzeigen"}</button>
         <div id="anlage-pruefung">
             ${anlageData.meldergruppen
                 .map(
@@ -202,6 +203,11 @@ async function showAnlagePruefung(anlageId) {
                     <h3>${gruppe.name}</h3>
                     <div class="melder-container">
                         ${gruppe.meldepunkte
+                            .filter((melder) =>
+                                showOnlyOpen
+                                    ? !melder.geprüft
+                                    : true
+                            )
                             .map(
                                 (melder) => `
                             <span>
@@ -221,10 +227,9 @@ async function showAnlagePruefung(anlageId) {
     });
 
     // Handle open filter toggle
-    let showOnlyOpen = false;
     document.getElementById("filter-open").addEventListener("click", () => {
         showOnlyOpen = !showOnlyOpen;
-        renderPage();
+        renderPage(); // Neu rendern
     });
 
     // Handle melder checkbox toggling
