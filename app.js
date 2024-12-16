@@ -65,6 +65,9 @@ onAuthStateChanged(auth, (user) => {
     if (user) {
         authSection.style.display = "none";
         menuSection.style.display = "block";
+
+	// Nach dem Login direkt zur Seite "Anlage Suchen" navigieren
+        showSearchPage();  // Zeige die Such-Seite an
     } else {
         authSection.style.display = "block";
         menuSection.style.display = "none";
