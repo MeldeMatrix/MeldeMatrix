@@ -80,14 +80,34 @@ function showSearchPage() {
 
     document.getElementById("perform-search").addEventListener("click", async () => {
         const searchTerm = document.getElementById("search-term").value;
-        const q = query(collection(db, "anlagen"), where("name", "==", searchTerm));
+        const q = query(
+            collection(db, "anlagen"),
+            where("name", "==", searchTerm)
+        );
+
         const querySnapshot = await getDocs(q);
         const resultsContainer = document.getElementById("search-results");
 
         resultsContainer.innerHTML = "";
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            resultsContainer.innerHTML += `<p>${data.name} - ${data.id}</p>`;
+            resultsContainer.innerHTML += `
+                <div>
+                    <p><strong>${data.name}</strong> (ID: ${data.id})</p>
+                    <p>Meldergruppen: ${data.meldergruppen.length}</p>
+                    <p>Geprüft: ${calculateProgress(data.meldergruppen)}%</p>
+                    <button class="open-anlage" data-id="${data.id}">Zur Prüfung</button>
+                </div>
+                <hr>
+            `;
+        });
+
+        // Add event listeners for "Zur Prüfung" buttons
+        document.querySelectorAll(".open-anlage").forEach((button) => {
+            button.addEventListener("click", (e) => {
+                const anlageId = e.target.getAttribute("data-id");
+                showAnlagePruefung(anlageId);
+            });
         });
     });
 }
@@ -105,18 +125,19 @@ function showCreatePage() {
     document.getElementById("create-new").addEventListener("click", async () => {
         const name = document.getElementById("new-name").value;
         const id = document.getElementById("new-id").value;
-        const groupCount = parseInt(document.getElementById("group-count").value, 10);
+        const groupCount = parseInt(
+            document.getElementById("group-count").value,
+            10
+        );
 
-        const meldergruppen = Array.from({ length: groupCount }, (_, i) => {
-            return {
-                name: `MG${i + 1}`,
-                meldepunkte: Array.from({ length: 32 }, (_, j) => ({
-                    id: j + 1,
-                    geprüft: false,
-                    quartal: null
-                }))
-            };
-        });
+        const meldergruppen = Array.from({ length: groupCount }, (_, i) => ({
+            name: `MG${i + 1}`,
+            meldepunkte: Array.from({ length: 32 }, (_, j) => ({
+                id: j + 1,
+                geprüft: false,
+                quartal: null,
+            })),
+        }));
 
         try {
             await setDoc(doc(db, "anlagen", id), { name, id, meldergruppen });
@@ -125,4 +146,108 @@ function showCreatePage() {
             alert(`Fehler beim Erstellen der Anlage: ${error.message}`);
         }
     });
+}
+
+// Show Prüfung Page
+async function showAnlagePruefung(anlageId) {
+    const anlageDoc = await getDoc(doc(db, "anlagen", anlageId));
+    if (!anlageDoc.exists()) {
+        alert("Anlage nicht gefunden!");
+        return;
+    }
+
+    const anlageData = anlageDoc.data();
+
+    content.innerHTML = `
+        <h2>Anlage: ${anlageData.name} (ID: ${anlageData.id})</h2>
+        <select id="quartal-selector">
+            <option value="Q1">Q1</option>
+            <option value="Q2">Q2</option>
+            <option value="Q3">Q3</option>
+            <option value="Q4">Q4</option>
+        </select>
+        <button id="filter-open">Nur offene Punkte anzeigen</button>
+        <div id="anlage-pruefung">
+            ${anlageData.meldergruppen
+                .map(
+                    (gruppe) => `
+                <div>
+                    <h3>${gruppe.name}</h3>
+                    <div class="melder-container">
+                        ${gruppe.meldepunkte
+                            .map(
+                                (melder) => `
+                            <span>
+                                ${melder.id}
+                                <button class="toggle-status" data-group="${
+                                    gruppe.name
+                                }" data-melder="${melder.id}" data-status="${
+                                    melder.geprüft
+                                }">${melder.geprüft ? "✔️" : "❌"}</button>
+                            </span>
+                        `
+                            )
+                            .join("")}
+                    </div>
+                </div>
+            `
+                )
+                .join("")}
+        </div>
+    `;
+
+    document.querySelectorAll(".toggle-status").forEach((button) => {
+        button.addEventListener("click", async (e) => {
+            const groupName = e.target.getAttribute("data-group");
+            const melderId = parseInt(e.target.getAttribute("data-melder"), 10);
+            const currentStatus = e.target.getAttribute("data-status") === "true";
+            const quartal = document.getElementById("quartal-selector").value;
+
+            try {
+                const updatedGruppen = anlageData.meldergruppen.map((gruppe) => {
+                    if (gruppe.name === groupName) {
+                        return {
+                            ...gruppe,
+                            meldepunkte: gruppe.meldepunkte.map((melder) => {
+                                if (melder.id === melderId) {
+                                    return {
+                                        ...melder,
+                                        geprüft: !currentStatus,
+                                        quartal: quartal,
+                                    };
+                                }
+                                return melder;
+                            }),
+                        };
+                    }
+                    return gruppe;
+                });
+
+                await setDoc(doc(db, "anlagen", anlageId), {
+                    ...anlageData,
+                    meldergruppen: updatedGruppen,
+                });
+
+                alert("Prüfstatus aktualisiert!");
+                showAnlagePruefung(anlageId);
+            } catch (error) {
+                alert(`Fehler beim Aktualisieren des Prüfstatus: ${error.message}`);
+            }
+        });
+    });
+}
+
+// Helper Function: Calculate Progress
+function calculateProgress(meldergruppen) {
+    const total = meldergruppen.reduce(
+        (sum, gruppe) => sum + gruppe.meldepunkte.length,
+        0
+    );
+    const checked = meldergruppen.reduce(
+        (sum, gruppe) =>
+            sum +
+            gruppe.meldepunkte.filter((melder) => melder.geprüft).length,
+        0
+    );
+    return ((checked / total) * 100).toFixed(2);
 }
