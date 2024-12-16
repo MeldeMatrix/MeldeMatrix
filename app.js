@@ -40,11 +40,11 @@ const content = document.getElementById("content");
 // Global state for the current Anlage ID
 let currentAnlageId = null;
 let selectedQuartal = 'Q1'; // Default value for the quarter
-let selectedYear = new Date().getFullYear(); // Default to current year
+let selectedYear = new Date().getFullYear(); // Current year selected by default
 let showOnlyOpen = false;   // Filter for open points
 let filterByQuarter = null; // To store which quarter to filter the display (via buttons)
 
-// Event listener for login button click (already exists)
+// Event listener for login button click
 document.getElementById("login-button").addEventListener("click", async () => {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
@@ -54,30 +54,6 @@ document.getElementById("login-button").addEventListener("click", async () => {
         alert(`Fehler beim Anmelden: ${error.message}`);
     }
 });
-
-document.getElementById("password").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-        triggerLogin();
-    }
-});
-
-// Function to trigger login process
-async function triggerLogin() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    try {
-        await signInWithEmailAndPassword(auth, email, password);
-    } catch (error) {
-        alert(`Fehler beim Anmelden: ${error.message}`);
-    }
-}
-
-document.getElementById("logout-button").addEventListener("click", async () => {
-    await signOut(auth);
-});
-
-document.getElementById("search-submit").addEventListener("click", showSearchPage);
-document.getElementById("create-submit").addEventListener("click", showCreatePage);
 
 // Authentication State Change
 onAuthStateChanged(auth, (user) => {
@@ -89,28 +65,6 @@ onAuthStateChanged(auth, (user) => {
         authSection.style.display = "block";
         menuSection.style.display = "none";
         content.innerHTML = "<p>Bitte loggen Sie sich ein.</p>";
-    }
-});
-
-// Event listener for the "CheckInspect" link
-document.getElementById("checkinspect-link").addEventListener("click", () => {
-    showSearchPage(); // Zeigt die Such-Seite an
-});
-
-// Event listener for the Refresh button
-document.getElementById("refresh-button").addEventListener("click", () => {
-    const currentPage = content.innerHTML;
-
-    if (currentPage.includes("Anlage Suchen")) {
-        showSearchPage();
-    } else if (currentPage.includes("Neue Anlage Erstellen")) {
-        showCreatePage();
-    } else if (currentPage.includes("Anlage:")) {
-        if (currentAnlageId) {
-            showAnlagePruefung(currentAnlageId);
-        } else {
-            alert("Keine gültige Anlage-ID gefunden.");
-        }
     }
 });
 
@@ -126,14 +80,6 @@ async function showSearchPage() {
     // Event listener for search button click
     document.getElementById("perform-search").addEventListener("click", performSearch);
 
-    // Event listener for Enter key press
-    document.getElementById("search-term").addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-            performSearch();  // Trigger search when Enter is pressed
-        }
-    });
-
-    // Perform search logic
     async function performSearch() {
         const searchTerm = document.getElementById("search-term").value.trim().toLowerCase();
         if (!searchTerm) {
@@ -166,8 +112,6 @@ async function showSearchPage() {
                     resultsContainer.innerHTML += `
                         <div>
                             <p><strong>${data.name}</strong> (Anlagen-Nr: ${data.id})</p>
-                            <p>Meldergruppen: ${data.meldergruppen.length}</p>
-                            <p>Geprüft: ${calculateProgress(data.meldergruppen)}%</p>
                             <button class="open-anlage" data-id="${data.id}">Zur Prüfung</button>
                         </div>
                         <hr>
@@ -205,8 +149,6 @@ async function showCreatePage() {
             </div>
         </div>
         <button id="add-meldegruppe">Weitere Meldegruppe hinzufügen</button>
-	<br>
-	<br>
         <button id="create-new">Anlage Erstellen</button>
     `;
 
@@ -242,8 +184,8 @@ async function showCreatePage() {
             const meldepunkte = Array.from({ length: melderCount }, (_, i) => ({
                 id: i + 1,
                 geprüft: false,
-                pruefjahre: [],  // Hier wird das Array für Prüfjahre hinzugefügt
                 quartal: null,
+                prüfjahre: [], // Array to store prüfjahre
             }));
 
             meldergruppen.push({
@@ -277,10 +219,6 @@ async function showAnlagePruefung(anlageId) {
     content.innerHTML = `
         <h2>Anlage: ${anlageData.name} (Anlagen-Nr: ${anlageData.id})</h2>
         <div>
-            <label for="year-select">Wählen Sie das Prüf-Jahr:</label>
-            <select id="year-select">
-                ${[2024, 2025, 2026].map((year) => `<option value="${year}" ${year === selectedYear ? 'selected' : ''}>${year}</option>`).join('')}
-            </select>
             <label for="quartal-select">Wählen Sie das Prüf-Quartal:</label>
             <select id="quartal-select">
                 <option value="Q1" ${selectedQuartal === 'Q1' ? 'selected' : ''}>Q1</option>
@@ -288,11 +226,15 @@ async function showAnlagePruefung(anlageId) {
                 <option value="Q3" ${selectedQuartal === 'Q3' ? 'selected' : ''}>Q3</option>
                 <option value="Q4" ${selectedQuartal === 'Q4' ? 'selected' : ''}>Q4</option>
             </select>
+            <label for="year-select">Wählen Sie das Prüf-Jahr:</label>
+            <select id="year-select">
+                <option value="${selectedYear}" selected>${selectedYear}</option>
+                <option value="${selectedYear - 1}">${selectedYear - 1}</option>
+                <option value="${selectedYear + 1}">${selectedYear + 1}</option>
+            </select>
             <button id="reset-melderpunkte">Alle Meldepunkte zurücksetzen</button>
         </div>
         <div id="quarter-buttons">
-            <label for="quarter-filter">Ansichtsfilter:</label>
-            <button id="filter-open">${showOnlyOpen ? "Alle Punkte anzeigen" : "Nur offene Punkte anzeigen"}</button>
             <button class="quarter-filter" data-quarter="Q1">Q1</button>
             <button class="quarter-filter" data-quarter="Q2">Q2</button>
             <button class="quarter-filter" data-quarter="Q3">Q3</button>
@@ -310,7 +252,7 @@ async function showAnlagePruefung(anlageId) {
                         ${gruppe.meldepunkte
                             .filter((melder) =>
                                 showOnlyOpen
-                                    ? !melder.geprüft || !melder.pruefjahre.includes(selectedYear)
+                                    ? !melder.geprüft
                                     : true
                             )
                             .filter((melder) =>
@@ -320,36 +262,32 @@ async function showAnlagePruefung(anlageId) {
                                 (melder) => ` 
                             <span>
                                 ${melder.id}
-                                <input type="checkbox" class="melder-checkbox" data-group="${gruppe.name}" data-id="${melder.id}" ${melder.geprüft ? 'checked' : ''}> 
-                            </span>`
-                            )
-                            .join('')}
+                                <input type="checkbox" class="melder-checkbox" data-group="${gruppe.name}" data-melder="${melder.id}" ${melder.geprüft ? 'checked' : ''}>
+                            </span>
+                        `).join('') }
                     </div>
-                </div>`
-                )
-                .join('')}
+                </div>
+            `).join('') }
         </div>
     `;
-}
 
-    // Event listener for quartal selection (to filter for testing)
+    // Event listener for quartal selection
     document.getElementById("quartal-select").addEventListener("change", (e) => {
         selectedQuartal = e.target.value;
     });
 
-    // Event listeners for quarter buttons (to filter display by quarter)
+    // Event listener for year selection
+    document.getElementById("year-select").addEventListener("change", (e) => {
+        selectedYear = parseInt(e.target.value, 10);
+    });
+
+    // Event listeners for quarter buttons
     document.querySelectorAll(".quarter-filter").forEach((button) => {
         button.addEventListener("click", (e) => {
             const quarter = e.target.getAttribute("data-quarter");
             filterByQuarter = quarter === 'all' ? null : quarter;
             showAnlagePruefung(anlageId); // Re-render with selected filter
         });
-    });
-
-    // Handle open filter toggle
-    document.getElementById("filter-open").addEventListener("click", () => {
-        showOnlyOpen = !showOnlyOpen;
-        showAnlagePruefung(anlageId); // Re-render page
     });
 
     // Handle reset melderpunkte button click
@@ -364,8 +302,8 @@ async function showAnlagePruefung(anlageId) {
             const melderId = parseInt(e.target.getAttribute("data-melder"), 10);
             const checked = e.target.checked;
 
-            if (!selectedQuartal) {
-                alert("Bitte wählen Sie zuerst das Quartal aus!");
+            if (!selectedQuartal || !selectedYear) {
+                alert("Bitte wählen Sie zuerst das Quartal und Jahr aus!");
                 return;
             }
 
@@ -375,11 +313,17 @@ async function showAnlagePruefung(anlageId) {
                         ...gruppe,
                         meldepunkte: gruppe.meldepunkte.map((melder) => {
                             if (melder.id === melderId) {
-                                return {
-                                    ...melder,
-                                    geprüft: checked,
-                                    quartal: selectedQuartal,
-                                };
+                                const prüfjahre = melder.prüfjahre || [];
+                                if (checked) {
+                                    prüfjahre.push({ jahr: selectedYear, quartal: selectedQuartal });
+                                } else {
+                                    // Entfernen des Prüfungseintrags
+                                    const index = prüfjahre.findIndex(p => p.jahr === selectedYear && p.quartal === selectedQuartal);
+                                    if (index > -1) {
+                                        prüfjahre.splice(index, 1);
+                                    }
+                                }
+                                return { ...melder, geprüft: checked, prüfjahre };
                             }
                             return melder;
                         }),
@@ -388,48 +332,34 @@ async function showAnlagePruefung(anlageId) {
                 return gruppe;
             });
 
-            await setDoc(doc(db, "anlagen", anlageId), {
-                ...anlageData,
-                meldergruppen: updatedGruppen,
-            });
-
-            anlageData.meldergruppen = updatedGruppen;
-            showAnlagePruefung(anlageId); // Re-render after update
+            try {
+                await setDoc(doc(db, "anlagen", anlageId), anlageData);
+                alert("Prüfstatus wurde aktualisiert.");
+            } catch (error) {
+                alert("Fehler beim Speichern des Prüfstatus.");
+            }
         });
     });
 }
 
-// Helper function to calculate progress
-function calculateProgress(meldergruppen) {
-    const total = meldergruppen.reduce(
-        (sum, gruppe) => sum + gruppe.meldepunkte.length,
-        0
-    );
-    const checked = meldergruppen.reduce(
-        (sum, gruppe) =>
-            sum +
-            gruppe.meldepunkte.filter((melder) => melder.geprüft).length,
-        0
-    );
-    return ((checked / total) * 100).toFixed(2);
-}
-
-// Function to reset all Melderpunkte
 async function resetMelderpunkte(anlageId, anlageData) {
-    const updatedGruppen = anlageData.meldergruppen.map((gruppe) => ({
+    // Reset all Melderpunkte
+    const resetData = anlageData.meldergruppen.map((gruppe) => ({
         ...gruppe,
         meldepunkte: gruppe.meldepunkte.map((melder) => ({
             ...melder,
             geprüft: false,
-            quartal: null,
-        })),
+            prüfjahre: [], // Clear all Prüfung records
+        }))
     }));
 
-    await setDoc(doc(db, "anlagen", anlageId), {
-        ...anlageData,
-        meldergruppen: updatedGruppen,
-    });
-
-    alert("Alle Melderpunkte wurden zurückgesetzt.");
-    showAnlagePruefung(anlageId); // Reload the page after reset
+    try {
+        await setDoc(doc(db, "anlagen", anlageId), {
+            ...anlageData,
+            meldergruppen: resetData
+        });
+        alert("Alle Meldepunkte wurden zurückgesetzt.");
+    } catch (error) {
+        alert(`Fehler beim Zurücksetzen der Meldepunkte: ${error.message}`);
+    }
 }
