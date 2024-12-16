@@ -170,7 +170,7 @@ function showCreatePage() {
 }
 
 // Global state variables for filter and status
-let showOnlyOpen = false;  // Zeige nur offene Melder
+let selectedQuartal = null;  // Zu wählendes Quartal
 
 async function showAnlagePruefung(anlageId) {
     const anlageDoc = await getDoc(doc(db, "anlagen", anlageId));
@@ -181,9 +181,106 @@ async function showAnlagePruefung(anlageId) {
 
     const anlageData = anlageDoc.data();
 
-    const renderPage = () => {
+    // Render page with Quartal selection
+    content.innerHTML = `
+        <h2>Anlage: ${anlageData.name} (ID: ${anlageData.id})</h2>
+        <div>
+            <label for="quartal-select">Wählen Sie das Quartal:</label>
+            <select id="quartal-select">
+                <option value="Q1">Q1</option>
+                <option value="Q2">Q2</option>
+                <option value="Q3">Q3</option>
+                <option value="Q4">Q4</option>
+            </select>
+        </div>
+        <button id="filter-open">Nur offene Punkte anzeigen</button>
+        <div id="anlage-pruefung">
+            ${anlageData.meldergruppen
+                .map(
+                    (gruppe) => `
+                <div>
+                    <h3>${gruppe.name}</h3>
+                    <div class="melder-container">
+                        ${gruppe.meldepunkte
+                            .map(
+                                (melder) => `
+                            <span>
+                                ${melder.id}
+                                <input type="checkbox" class="melder-checkbox" data-group="${gruppe.name}" data-melder="${melder.id}" ${melder.geprüft ? 'checked' : ''}>
+                            </span>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+
+    // Bind Quartal selection event
+    document.getElementById("quartal-select").addEventListener("change", (e) => {
+        selectedQuartal = e.target.value;
+    });
+
+    // Handle open filter toggle
+    let showOnlyOpen = false;
+    document.getElementById("filter-open").addEventListener("click", () => {
+        showOnlyOpen = !showOnlyOpen;
+        renderPage();
+    });
+
+    // Handle melder checkbox toggling
+    document.querySelectorAll(".melder-checkbox").forEach((checkbox) => {
+        checkbox.addEventListener("change", async (e) => {
+            const groupName = e.target.getAttribute("data-group");
+            const melderId = parseInt(e.target.getAttribute("data-melder"), 10);
+            const checked = e.target.checked;
+
+            if (!selectedQuartal) {
+                alert("Bitte wählen Sie zuerst das Quartal aus!");
+                return;
+            }
+
+            const updatedGruppen = anlageData.meldergruppen.map((gruppe) => {
+                if (gruppe.name === groupName) {
+                    return {
+                        ...gruppe,
+                        meldepunkte: gruppe.meldepunkte.map((melder) => {
+                            if (melder.id === melderId) {
+                                return {
+                                    ...melder,
+                                    geprüft: checked, // Status des Melders ändern
+                                    quartal: selectedQuartal, // Quartal speichern
+                                };
+                            }
+                            return melder;
+                        }),
+                    };
+                }
+                return gruppe;
+            });
+
+            await setDoc(doc(db, "anlagen", anlageId), {
+                ...anlageData,
+                meldergruppen: updatedGruppen,
+            });
+
+            anlageData.meldergruppen = updatedGruppen; // Aktuelle Daten aktualisieren
+            renderPage(); // Seite neu rendern
+        });
+    });
+
+    // Helper function to render page
+    function renderPage() {
         content.innerHTML = `
             <h2>Anlage: ${anlageData.name} (ID: ${anlageData.id})</h2>
+            <div>
+                <label for="quartal-select">Wählen Sie das Quartal:</label>
+                <select id="quartal-select">
+                    <option value="Q1">Q1</option>
+                    <option value="Q2">Q2</option>
+                    <option value="Q3">Q3</option>
+                    <option value="Q4">Q4</option>
+                </select>
+            </div>
             <button id="filter-open">${showOnlyOpen ? "Alle Punkte anzeigen" : "Nur offene Punkte anzeigen"}</button>
             <div id="anlage-pruefung">
                 ${anlageData.meldergruppen
@@ -202,13 +299,7 @@ async function showAnlagePruefung(anlageId) {
                                     (melder) => `
                                 <span>
                                     ${melder.id}
-                                    <select class="quartal-selector" data-group="${gruppe.name}" data-melder="${melder.id}">
-                                        <option value="Q1" ${melder.quartal === 'Q1' ? 'selected' : ''}>Q1</option>
-                                        <option value="Q2" ${melder.quartal === 'Q2' ? 'selected' : ''}>Q2</option>
-                                        <option value="Q3" ${melder.quartal === 'Q3' ? 'selected' : ''}>Q3</option>
-                                        <option value="Q4" ${melder.quartal === 'Q4' ? 'selected' : ''}>Q4</option>
-                                    </select>
-                                    <button class="toggle-status" data-group="${gruppe.name}" data-melder="${melder.id}" data-status="${melder.geprüft}">${melder.geprüft ? "✔️" : "❌"}</button>
+                                    <input type="checkbox" class="melder-checkbox" data-group="${gruppe.name}" data-melder="${melder.id}" ${melder.geprüft ? 'checked' : ''}>
                                 </span>
                             `).join('') }
                         </div>
@@ -216,93 +307,7 @@ async function showAnlagePruefung(anlageId) {
                 `).join('')}
             </div>
         `;
-
-        bindButtons();
-    };
-
-    const bindButtons = () => {
-        // Handle the "Nur offene Punkte anzeigen" button toggle
-        document.getElementById("filter-open").addEventListener("click", () => {
-            showOnlyOpen = !showOnlyOpen;
-            renderPage();
-        });
-
-        // Handle the Quartal selection change
-        document.querySelectorAll(".quartal-selector").forEach((select) => {
-            select.addEventListener("change", async (e) => {
-                const groupName = e.target.getAttribute("data-group");
-                const melderId = parseInt(e.target.getAttribute("data-melder"), 10);
-                const selectedQuartal = e.target.value;
-
-                const updatedGruppen = anlageData.meldergruppen.map((gruppe) => {
-                    if (gruppe.name === groupName) {
-                        return {
-                            ...gruppe,
-                            meldepunkte: gruppe.meldepunkte.map((melder) => {
-                                if (melder.id === melderId) {
-                                    return {
-                                        ...melder,
-                                        quartal: selectedQuartal, // Quartal wird gespeichert
-                                    };
-                                }
-                                return melder;
-                            }),
-                        };
-                    }
-                    return gruppe;
-                });
-
-                await setDoc(doc(db, "anlagen", anlageId), {
-                    ...anlageData,
-                    meldergruppen: updatedGruppen,
-                });
-
-                anlageData.meldergruppen = updatedGruppen; // Aktuelle Daten aktualisieren
-                renderPage(); // Seite neu rendern
-            });
-        });
-
-        // Event listeners for toggling the Prüfzstatus
-        document.querySelectorAll(".toggle-status").forEach((button) => {
-            button.addEventListener("click", async (e) => {
-                const groupName = e.target.getAttribute("data-group");
-                const melderId = parseInt(e.target.getAttribute("data-melder"), 10);
-                const currentStatus = e.target.getAttribute("data-status") === "true";
-
-                try {
-                    const updatedGruppen = anlageData.meldergruppen.map((gruppe) => {
-                        if (gruppe.name === groupName) {
-                            return {
-                                ...gruppe,
-                                meldepunkte: gruppe.meldepunkte.map((melder) => {
-                                    if (melder.id === melderId) {
-                                        return {
-                                            ...melder,
-                                            geprüft: !currentStatus, // Status umkehren
-                                        };
-                                    }
-                                    return melder;
-                                }),
-                            };
-                        }
-                        return gruppe;
-                    });
-
-                    await setDoc(doc(db, "anlagen", anlageId), {
-                        ...anlageData,
-                        meldergruppen: updatedGruppen,
-                    });
-
-                    anlageData.meldergruppen = updatedGruppen; // Aktuelle Daten aktualisieren
-                    renderPage(); // Seite neu rendern
-                } catch (error) {
-                    alert(`Fehler beim Aktualisieren des Prüfstatus: ${error.message}`);
-                }
-            });
-        });
-    };
-
-    renderPage(); // Initial render
+    }
 }
 
 // Helper Function: Calculate Progress
