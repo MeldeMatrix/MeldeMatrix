@@ -46,7 +46,6 @@ document.getElementById("login-button").addEventListener("click", async () => {
     const password = document.getElementById("password").value;
     try {
         await signInWithEmailAndPassword(auth, email, password);
-        alert("Login erfolgreich!");
     } catch (error) {
         alert(`Fehler beim Anmelden: ${error.message}`);
     }
@@ -54,7 +53,6 @@ document.getElementById("login-button").addEventListener("click", async () => {
 
 document.getElementById("logout-button").addEventListener("click", async () => {
     await signOut(auth);
-    alert("Abgemeldet!");
 });
 
 document.getElementById("search-submit").addEventListener("click", showSearchPage);
@@ -220,7 +218,7 @@ async function showAnlagePruefung(anlageId) {
             </select>
         </div>
         <button id="filter-open">${showOnlyOpen ? "Alle Punkte anzeigen" : "Nur offene Punkte anzeigen"}</button>
-        <button id="reset-melderpunkte">Alle Melderpunkte auf 'Geprüft: false' und 'Quartal: null' setzen</button>
+        <button id="reset-melderpunkte">Alle Melderpunkte zurücksetzen</button>
         <div id="anlage-pruefung">
             ${anlageData.meldergruppen
                 .map(
@@ -340,6 +338,6 @@ async function resetMelderpunkte(anlageId, anlageData) {
         meldergruppen: updatedGruppen,
     });
 
-    alert("Alle Melderpunkte wurden auf 'Geprüft: false' und 'Quartal: null' gesetzt.");
+    alert("Alle Melderpunkte wurden zurückgesetzt.");
     showAnlagePruefung(anlageId); // Seite neu laden
 }
