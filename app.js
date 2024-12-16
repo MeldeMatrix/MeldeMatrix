@@ -149,6 +149,8 @@ function showCreatePage() {
 }
 
 // Show Prüfung Page
+let quartalFilter = null; // Global state for the quartal filter
+
 async function showAnlagePruefung(anlageId) {
     const anlageDoc = await getDoc(doc(db, "anlagen", anlageId));
     if (!anlageDoc.exists()) {
@@ -158,16 +160,15 @@ async function showAnlagePruefung(anlageId) {
 
     const anlageData = anlageDoc.data();
     let showOnlyOpen = false; // State for showing only open points
-    let quartalFilter = null; // State for showing a specific quartal
 
     const renderPage = () => {
         content.innerHTML = `
             <h2>Anlage: ${anlageData.name} (ID: ${anlageData.id})</h2>
             <select id="quartal-selector">
-                <option value="Q1">Q1</option>
-                <option value="Q2">Q2</option>
-                <option value="Q3">Q3</option>
-                <option value="Q4">Q4</option>
+                <option value="Q1" ${quartalFilter === 'Q1' ? 'selected' : ''}>Q1</option>
+                <option value="Q2" ${quartalFilter === 'Q2' ? 'selected' : ''}>Q2</option>
+                <option value="Q3" ${quartalFilter === 'Q3' ? 'selected' : ''}>Q3</option>
+                <option value="Q4" ${quartalFilter === 'Q4' ? 'selected' : ''}>Q4</option>
             </select>
             <button id="filter-open">${showOnlyOpen ? "Alle Punkte anzeigen" : "Nur offene Punkte anzeigen"}</button>
             <button id="filter-quartal">${quartalFilter ? `Quartal ${quartalFilter} anzeigen` : "Quartal filtern"}</button>
