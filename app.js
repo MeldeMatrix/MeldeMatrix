@@ -69,6 +69,23 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
+// Event listener für den Refresh-Button
+document.getElementById("refresh-button").addEventListener("click", () => {
+    const currentPage = content.innerHTML;
+
+    // Überprüfen, welche Seite aktuell angezeigt wird
+    if (currentPage.includes("Anlage Suchen")) {
+        showSearchPage(); // Zeige die Such-Seite an
+    } else if (currentPage.includes("Neue Anlage Erstellen")) {
+        showCreatePage(); // Zeige die Erstellungs-Seite an
+    } else if (currentPage.includes("Anlage:")) {
+        // Hier müsste die angezeigte Anlage geladen werden. Um dies zu tun, musst du die ID der aktuell angezeigten Anlage speichern.
+        const anlageId = content.querySelector("h2").innerText.split(":")[1].trim(); 
+        showAnlagePruefung(anlageId); // Zeige die Seite für die Prüfung der spezifischen Anlage an
+    }
+});
+
+
 // Search Page
 async function showSearchPage() {
     content.innerHTML = `
