@@ -218,6 +218,7 @@ async function showAnlagePruefung(anlageId) {
                         </div>
                     </div>
                 `).join('')}`
+		</div>
         `;
 
         bindButtons();
@@ -286,6 +287,7 @@ async function showAnlagePruefung(anlageId) {
 
     renderPage(); // Initial render
 }
+
 // Helper Function: Calculate Progress
 function calculateProgress(meldergruppen) {
     const total = meldergruppen.reduce(
