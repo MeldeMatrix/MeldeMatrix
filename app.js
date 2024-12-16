@@ -191,20 +191,12 @@ async function showAnlagePruefung(anlageId) {
                                     (melder) => `
                                 <span>
                                     ${melder.id}
-                                    <button class="toggle-status" data-group="${
-                                        gruppe.name
-                                    }" data-melder="${melder.id}" data-status="${
-                                        melder.geprüft
-                                    }">${melder.geprüft ? "✔️" : "❌"}</button>
+                                    <button class="toggle-status" data-group="${gruppe.name}" data-melder="${melder.id}" data-status="${melder.geprüft}">${melder.geprüft ? "✔️" : "❌"}</button>
                                 </span>
-                            `
-                                )
-                                .join("")}
+                            `).join('')}
                         </div>
                     </div>
-                `
-                    )
-                    .join("")}
+                `).join('')}
             </div>
         `;
 
@@ -212,17 +204,26 @@ async function showAnlagePruefung(anlageId) {
     };
 
     const bindButtons = () => {
+        // Handle the "Nur offene Punkte anzeigen" button toggle
         document.getElementById("filter-open").addEventListener("click", () => {
             showOnlyOpen = !showOnlyOpen;
             renderPage();
         });
 
+        // Handle the "Quartal filtern" button toggle
         document.getElementById("filter-quartal").addEventListener("click", () => {
             const selectedQuartal = document.getElementById("quartal-selector").value;
             quartalFilter = quartalFilter === selectedQuartal ? null : selectedQuartal;
             renderPage();
         });
 
+        // Handle the Quartal selector change
+        document.getElementById("quartal-selector").addEventListener("change", (e) => {
+            quartalFilter = e.target.value;
+            renderPage(); // Re-render the page after the quartal change
+        });
+
+        // Event listeners for toggling the Prüfzstatus
         document.querySelectorAll(".toggle-status").forEach((button) => {
             button.addEventListener("click", async (e) => {
                 const groupName = e.target.getAttribute("data-group");
@@ -265,19 +266,4 @@ async function showAnlagePruefung(anlageId) {
     };
 
     renderPage(); // Initial render
-}
-
-// Helper Function: Calculate Progress
-function calculateProgress(meldergruppen) {
-    const total = meldergruppen.reduce(
-        (sum, gruppe) => sum + gruppe.meldepunkte.length,
-        0
-    );
-    const checked = meldergruppen.reduce(
-        (sum, gruppe) =>
-            sum +
-            gruppe.meldepunkte.filter((melder) => melder.geprüft).length,
-        0
-    );
-    return ((checked / total) * 100).toFixed(2);
 }
