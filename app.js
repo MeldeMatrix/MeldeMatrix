@@ -37,6 +37,9 @@ const authSection = document.getElementById("auth-section");
 const menuSection = document.getElementById("menu-section");
 const content = document.getElementById("content");
 
+// Global state for the current Anlage ID
+let currentAnlageId = null;
+
 // Event Listeners
 document.getElementById("login-button").addEventListener("click", async () => {
     const email = document.getElementById("email").value;
@@ -79,12 +82,14 @@ document.getElementById("refresh-button").addEventListener("click", () => {
     } else if (currentPage.includes("Neue Anlage Erstellen")) {
         showCreatePage(); // Zeige die Erstellungs-Seite an
     } else if (currentPage.includes("Anlage:")) {
-        // Hier müsste die angezeigte Anlage geladen werden. Um dies zu tun, musst du die ID der aktuell angezeigten Anlage speichern.
-        const anlageId = content.querySelector("h2").innerText.split(":")[1].trim(); 
-        showAnlagePruefung(anlageId); // Zeige die Seite für die Prüfung der spezifischen Anlage an
+        // Hier müsste die angezeigte Anlage geladen werden. Verwende currentAnlageId, wenn sie gesetzt ist.
+        if (currentAnlageId) {
+            showAnlagePruefung(currentAnlageId); // Zeige die Seite für die Prüfung der spezifischen Anlage an
+        } else {
+            alert("Keine gültige Anlage-ID gefunden.");
+        }
     }
 });
-
 
 // Search Page
 async function showSearchPage() {
@@ -141,6 +146,7 @@ async function showSearchPage() {
                 document.querySelectorAll(".open-anlage").forEach((button) => {
                     button.addEventListener("click", (e) => {
                         const anlageId = e.target.getAttribute("data-id");
+                        currentAnlageId = anlageId;  // Die ID speichern
                         showAnlagePruefung(anlageId);
                     });
                 });
