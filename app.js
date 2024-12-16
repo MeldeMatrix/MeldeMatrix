@@ -40,6 +40,7 @@ const content = document.getElementById("content");
 // Global state for the current Anlage ID
 let currentAnlageId = null;
 let selectedQuartal = 'Q1'; // Default value for the quarter
+let selectedYear = new Date().getFullYear(); // Default to current year
 let showOnlyOpen = false;   // Filter for open points
 let filterByQuarter = null; // To store which quarter to filter the display (via buttons)
 
@@ -239,22 +240,11 @@ async function showCreatePage() {
             const smChecked = groupElement.querySelector(".sm-checkbox").checked;
             
             const meldepunkte = Array.from({ length: melderCount }, (_, i) => ({
-    id: i + 1,
-    prüfstatus: [
-        {
-            jahr: 2024,
-            quartal: null,
-            geprüft: false
-        },
-        {
-            jahr: 2025,
-            quartal: null,
-            geprüft: false
-        },
-        // Weitere Jahre können hier hinzugefügt werden
-    ],
-}));
-
+                id: i + 1,
+                geprüft: false,
+                pruefjahre: [],  // Hier wird das Array für Prüfjahre hinzugefügt
+                quartal: null,
+            }));
 
             meldergruppen.push({
                 name: `MG${index + 1}`,
@@ -287,6 +277,10 @@ async function showAnlagePruefung(anlageId) {
     content.innerHTML = `
         <h2>Anlage: ${anlageData.name} (Anlagen-Nr: ${anlageData.id})</h2>
         <div>
+            <label for="year-select">Wählen Sie das Prüf-Jahr:</label>
+            <select id="year-select">
+                ${[2024, 2025, 2026].map((year) => `<option value="${year}" ${year === selectedYear ? 'selected' : ''}>${year}</option>`).join('')}
+            </select>
             <label for="quartal-select">Wählen Sie das Prüf-Quartal:</label>
             <select id="quartal-select">
                 <option value="Q1" ${selectedQuartal === 'Q1' ? 'selected' : ''}>Q1</option>
@@ -294,17 +288,17 @@ async function showAnlagePruefung(anlageId) {
                 <option value="Q3" ${selectedQuartal === 'Q3' ? 'selected' : ''}>Q3</option>
                 <option value="Q4" ${selectedQuartal === 'Q4' ? 'selected' : ''}>Q4</option>
             </select>
-	    <button id="reset-melderpunkte">Alle Meldepunkte zurücksetzen</button>
+            <button id="reset-melderpunkte">Alle Meldepunkte zurücksetzen</button>
         </div>
         <div id="quarter-buttons">
-	<label for="quarter-filter">Ansichtsfilter:</label>
-	    <button id="filter-open">${showOnlyOpen ? "Alle Punkte anzeigen" : "Nur offene Punkte anzeigen"}</button>
+            <label for="quarter-filter">Ansichtsfilter:</label>
+            <button id="filter-open">${showOnlyOpen ? "Alle Punkte anzeigen" : "Nur offene Punkte anzeigen"}</button>
             <button class="quarter-filter" data-quarter="Q1">Q1</button>
             <button class="quarter-filter" data-quarter="Q2">Q2</button>
             <button class="quarter-filter" data-quarter="Q3">Q3</button>
             <button class="quarter-filter" data-quarter="Q4">Q4</button>
             <button class="quarter-filter" data-quarter="all">Alle</button>
-	</div>
+        </div>
         <div id="anlage-pruefung">
             ${anlageData.meldergruppen
                 .filter(gruppe => gruppe.meldepunkte.length > 0) // Nur Meldegruppen mit Meldepunkten anzeigen
@@ -313,28 +307,30 @@ async function showAnlagePruefung(anlageId) {
                 <div>
                     <h3>${gruppe.name} ${gruppe.zd ? "(ZD)" : ""} ${gruppe.sm ? "(SM)" : ""}</h3>
                     <div class="melder-container">
-    ${gruppe.meldepunkte
-        .filter((melder) =>
-            showOnlyOpen
-                ? melder.prüfstatus.some((status) => !status.geprüft && status.jahr === selectedJahr && status.quartal === selectedQuartal)
-                : true
-        )
-        .filter((melder) =>
-            filterByQuarter ? melder.prüfstatus.some((status) => status.quartal === filterByQuarter) : true
-        )
-        .map(
-            (melder) => `
-                <span>
-                    ${melder.id}
-                    <input type="checkbox" class="melder-checkbox" data-group="${gruppe.name}" data-melder="${melder.id}" 
-                    ${melder.prüfstatus.some((status) => status.jahr === selectedJahr && status.quartal === selectedQuartal && status.geprüft) ? 'checked' : ''}>
-                </span>
-            `).join('')}
-</div>
-                </div>
-            `).join('') }
+                        ${gruppe.meldepunkte
+                            .filter((melder) =>
+                                showOnlyOpen
+                                    ? !melder.geprüft || !melder.pruefjahre.includes(selectedYear)
+                                    : true
+                            )
+                            .filter((melder) =>
+                                filterByQuarter ? melder.quartal === filterByQuarter : true
+                            )
+                            .map(
+                                (melder) => ` 
+                            <span>
+                                ${melder.id}
+                                <input type="checkbox" class="melder-checkbox" data-group="${gruppe.name}" data-id="${melder.id}" ${melder.geprüft ? 'checked' : ''}> 
+                            </span>`
+                            )
+                            .join('')}
+                    </div>
+                </div>`
+                )
+                .join('')}
         </div>
     `;
+}
 
     // Event listener for quartal selection (to filter for testing)
     document.getElementById("quartal-select").addEventListener("change", (e) => {
@@ -363,61 +359,44 @@ async function showAnlagePruefung(anlageId) {
 
     // Handle melder checkbox toggling
     document.querySelectorAll(".melder-checkbox").forEach((checkbox) => {
-    checkbox.addEventListener("change", async (e) => {
-        const groupName = e.target.getAttribute("data-group");
-        const melderId = parseInt(e.target.getAttribute("data-melder"), 10);
-        const checked = e.target.checked;
+        checkbox.addEventListener("change", async (e) => {
+            const groupName = e.target.getAttribute("data-group");
+            const melderId = parseInt(e.target.getAttribute("data-melder"), 10);
+            const checked = e.target.checked;
 
-        if (!selectedQuartal) {
-            alert("Bitte wählen Sie zuerst das Quartal aus!");
-            return;
-        }
+            if (!selectedQuartal) {
+                alert("Bitte wählen Sie zuerst das Quartal aus!");
+                return;
+            }
 
-        const updatedGruppen = anlageData.meldergruppen.map((gruppe) => {
-            if (gruppe.name === groupName) {
-                return {
-                    ...gruppe,
-                    meldepunkte: gruppe.meldepunkte.map((melder) => {
-                        if (melder.id === melderId) {
-                            // Findet das Prüfjahr und das Quartal für den Meldepunkt
-                            const prüfstatus = melder.prüfstatus.find((status) => status.jahr === selectedJahr && status.quartal === selectedQuartal);
-                            if (prüfstatus) {
+            const updatedGruppen = anlageData.meldergruppen.map((gruppe) => {
+                if (gruppe.name === groupName) {
+                    return {
+                        ...gruppe,
+                        meldepunkte: gruppe.meldepunkte.map((melder) => {
+                            if (melder.id === melderId) {
                                 return {
                                     ...melder,
-                                    prüfstatus: melder.prüfstatus.map((status) =>
-                                        status.jahr === selectedJahr && status.quartal === selectedQuartal
-                                            ? { ...status, geprüft: checked }
-                                            : status
-                                    )
-                                };
-                            } else {
-                                // Falls der Prüfstatus für das Jahr und Quartal noch nicht existiert, erstellen wir ihn
-                                return {
-                                    ...melder,
-                                    prüfstatus: [
-                                        ...melder.prüfstatus,
-                                        { jahr: selectedJahr, quartal: selectedQuartal, geprüft: checked }
-                                    ]
+                                    geprüft: checked,
+                                    quartal: selectedQuartal,
                                 };
                             }
-                        }
-                        return melder;
-                    }),
-                };
-            }
-            return gruppe;
-        });
+                            return melder;
+                        }),
+                    };
+                }
+                return gruppe;
+            });
 
-        await setDoc(doc(db, "anlagen", anlageId), {
-            ...anlageData,
-            meldergruppen: updatedGruppen,
-        });
+            await setDoc(doc(db, "anlagen", anlageId), {
+                ...anlageData,
+                meldergruppen: updatedGruppen,
+            });
 
-        anlageData.meldergruppen = updatedGruppen;
-        showAnlagePruefung(anlageId); // Seite nach dem Update neu rendern
+            anlageData.meldergruppen = updatedGruppen;
+            showAnlagePruefung(anlageId); // Re-render after update
+        });
     });
-});
-
 }
 
 // Helper function to calculate progress
