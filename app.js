@@ -239,6 +239,7 @@ async function showAnlagePruefung(anlageId) {
                 return;
             }
 
+            // Update Melderpunkt with quartal and status
             const updatedGruppen = anlageData.meldergruppen.map((gruppe) => {
                 if (gruppe.name === groupName) {
                     return {
@@ -258,11 +259,13 @@ async function showAnlagePruefung(anlageId) {
                 return gruppe;
             });
 
+            // Update the database
             await setDoc(doc(db, "anlagen", anlageId), {
                 ...anlageData,
                 meldergruppen: updatedGruppen,
             });
 
+            // Re-render the page after update
             anlageData.meldergruppen = updatedGruppen; // Aktuelle Daten aktualisieren
             renderPage(); // Seite neu rendern
         });
