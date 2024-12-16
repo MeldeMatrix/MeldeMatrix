@@ -217,8 +217,7 @@ async function showAnlagePruefung(anlageId) {
                             `).join('')}
                         </div>
                     </div>
-                `).join('')}
-            </div>
+                `).join('')}`
         `;
 
         bindButtons();
@@ -238,10 +237,9 @@ async function showAnlagePruefung(anlageId) {
             renderPage();
         });
 
-        // Handle the Quartal selector change
+        // Handle the Quartal selector change without filtering immediately
         document.getElementById("quartal-selector").addEventListener("change", (e) => {
-            quartalFilter = e.target.value;
-            renderPage(); // Re-render the page after the quartal change
+            quartalFilter = e.target.value; // Set the quartal but do not filter automatically
         });
 
         // Event listeners for toggling the Prüfzstatus
