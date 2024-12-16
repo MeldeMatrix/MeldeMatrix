@@ -40,7 +40,7 @@ const content = document.getElementById("content");
 // Global state for the current Anlage ID
 let currentAnlageId = null;
 let selectedQuartal = 'Q1'; // Default value for the quarter
-let selectedYear = new Date().getFullYear(); // Default to the current year
+let selectedJahr = 2024;    // Default year
 let showOnlyOpen = false;   // Filter for open points
 let filterByQuarter = null; // To store which quarter to filter the display (via buttons)
 
@@ -241,9 +241,8 @@ async function showCreatePage() {
             
             const meldepunkte = Array.from({ length: melderCount }, (_, i) => ({
                 id: i + 1,
-                geprüft: false,
+                geprüft: {},
                 quartal: null,
-                prüfjahre: [], // Array to store checked years
             }));
 
             meldergruppen.push({
@@ -273,7 +272,7 @@ async function showAnlagePruefung(anlageId) {
 
     const anlageData = anlageDoc.data();
 
-    // Render page with Quartal and Year selection
+    // Render page with Quartal and Year selection and additional buttons
     content.innerHTML = `
         <h2>Anlage: ${anlageData.name} (Anlagen-Nr: ${anlageData.id})</h2>
         <div>
@@ -284,10 +283,14 @@ async function showAnlagePruefung(anlageId) {
                 <option value="Q3" ${selectedQuartal === 'Q3' ? 'selected' : ''}>Q3</option>
                 <option value="Q4" ${selectedQuartal === 'Q4' ? 'selected' : ''}>Q4</option>
             </select>
-            <label for="year-select">Wählen Sie das Jahr:</label>
+
+            <label for="year-select">Wählen Sie das Prüf-Jahr:</label>
             <select id="year-select">
-                ${[2024, 2023, 2022].map(year => `<option value="${year}" ${selectedYear === year ? 'selected' : ''}>${year}</option>`).join('')}
+                <option value="2024" ${selectedJahr === 2024 ? 'selected' : ''}>2024</option>
+                <option value="2023" ${selectedJahr === 2023 ? 'selected' : ''}>2023</option>
+                <option value="2022" ${selectedJahr === 2022 ? 'selected' : ''}>2022</option>
             </select>
+
             <button id="reset-melderpunkte">Alle Meldepunkte zurücksetzen</button>
         </div>
         <div id="quarter-buttons">
@@ -310,20 +313,17 @@ async function showAnlagePruefung(anlageId) {
                         ${gruppe.meldepunkte
                             .filter((melder) =>
                                 showOnlyOpen
-                                    ? !melder.geprüft
+                                    ? !melder.geprüft[selectedJahr]
                                     : true
                             )
                             .filter((melder) =>
                                 filterByQuarter ? melder.quartal === filterByQuarter : true
                             )
-                            .filter((melder) =>
-                                melder.prüfjahre.includes(selectedYear) || !melder.prüfjahre.length
-                            )
                             .map(
                                 (melder) => ` 
                             <span>
                                 ${melder.id}
-                                <input type="checkbox" class="melder-checkbox" data-group="${gruppe.name}" data-melder="${melder.id}" ${melder.geprüft ? 'checked' : ''}>
+                                <input type="checkbox" class="melder-checkbox" data-group="${gruppe.name}" data-melder="${melder.id}" ${melder.geprüft[selectedJahr] ? 'checked' : ''}>
                             </span>
                         `).join('') }
                     </div>
@@ -332,18 +332,18 @@ async function showAnlagePruefung(anlageId) {
         </div>
     `;
 
-    // Event listener for year selection (to filter by year)
-    document.getElementById("year-select").addEventListener("change", (e) => {
-        selectedYear = parseInt(e.target.value, 10);
-        showAnlagePruefung(anlageId); // Re-render with selected year
-    });
-
-    // Event listener for quartal selection (to filter for testing)
+    // Event listener for quartal selection
     document.getElementById("quartal-select").addEventListener("change", (e) => {
         selectedQuartal = e.target.value;
     });
 
-    // Event listeners for quarter buttons (to filter display by quarter)
+    // Event listener for year selection
+    document.getElementById("year-select").addEventListener("change", (e) => {
+        selectedJahr = parseInt(e.target.value, 10);
+        showAnlagePruefung(anlageId); // Re-render with selected year
+    });
+
+    // Event listeners for quarter buttons
     document.querySelectorAll(".quarter-filter").forEach((button) => {
         button.addEventListener("click", (e) => {
             const quarter = e.target.getAttribute("data-quarter");
@@ -383,9 +383,11 @@ async function showAnlagePruefung(anlageId) {
                             if (melder.id === melderId) {
                                 return {
                                     ...melder,
-                                    geprüft: checked,
+                                    geprüft: {
+                                        ...melder.geprüft,
+                                        [selectedJahr]: checked,
+                                    },
                                     quartal: selectedQuartal,
-                                    prüfjahre: [...melder.prüfjahre, selectedYear], // Add year to the prüfjahre array
                                 };
                             }
                             return melder;
@@ -427,9 +429,8 @@ async function resetMelderpunkte(anlageId, anlageData) {
         ...gruppe,
         meldepunkte: gruppe.meldepunkte.map((melder) => ({
             ...melder,
-            geprüft: false,
+            geprüft: {},
             quartal: null,
-            prüfjahre: [], // Clear the years array
         })),
     }));
 
