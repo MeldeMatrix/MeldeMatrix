@@ -100,8 +100,18 @@ async function showSearchPage() {
         <div id="search-results"></div>
     `;
 
-    // Rebind event listener for search
-    document.getElementById("perform-search").addEventListener("click", async () => {
+    // Event listener for search button click
+    document.getElementById("perform-search").addEventListener("click", performSearch);
+
+    // Event listener for Enter key press
+    document.getElementById("search-term").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            performSearch();  // Trigger search when Enter is pressed
+        }
+    });
+
+    // Perform search logic
+    async function performSearch() {
         const searchTerm = document.getElementById("search-term").value.trim().toLowerCase();
         if (!searchTerm) {
             alert("Bitte einen Suchbegriff eingeben.");
@@ -152,7 +162,7 @@ async function showSearchPage() {
         } catch (error) {
             alert(`Fehler bei der Suche: ${error.message}`);
         }
-    });
+    }
 }
 
 // Create Page
