@@ -150,6 +150,7 @@ function showCreatePage() {
 
 // Show Prüfung Page
 let quartalFilter = null; // Global state for the quartal filter
+let showOnlyOpen = false; // State for showing only open points
 
 async function showAnlagePruefung(anlageId) {
     const anlageDoc = await getDoc(doc(db, "anlagen", anlageId));
@@ -159,7 +160,6 @@ async function showAnlagePruefung(anlageId) {
     }
 
     const anlageData = anlageDoc.data();
-    let showOnlyOpen = false; // State for showing only open points
 
     const renderPage = () => {
         content.innerHTML = `
@@ -218,8 +218,7 @@ async function showAnlagePruefung(anlageId) {
         });
 
         document.getElementById("filter-quartal").addEventListener("click", () => {
-            const selectedQuartal =
-                document.getElementById("quartal-selector").value;
+            const selectedQuartal = document.getElementById("quartal-selector").value;
             quartalFilter = quartalFilter === selectedQuartal ? null : selectedQuartal;
             renderPage();
         });
@@ -257,7 +256,6 @@ async function showAnlagePruefung(anlageId) {
                     });
 
                     anlageData.meldergruppen = updatedGruppen; // Update local data
-                    quartalFilter = quartal; // Retain quartal filter
                     renderPage(); // Re-render the page with updated data
                 } catch (error) {
                     alert(`Fehler beim Aktualisieren des Prüfstatus: ${error.message}`);
