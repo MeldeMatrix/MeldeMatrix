@@ -260,8 +260,9 @@ async function showAnlagePruefung(anlageId) {
         <button id="reset-melderpunkte">Alle Melderpunkte zurücksetzen</button>
         <div id="anlage-pruefung">
             ${anlageData.meldergruppen
+                .filter(gruppe => gruppe.meldepunkte.length > 0) // Nur Meldegruppen mit Meldepunkten anzeigen
                 .map(
-                    (gruppe) => `
+                    (gruppe) => ` 
                 <div>
                     <h3>${gruppe.name} ${gruppe.zd ? "(ZD)" : ""} ${gruppe.sm ? "(SM)" : ""}</h3>
                     <div class="melder-container">
@@ -275,7 +276,7 @@ async function showAnlagePruefung(anlageId) {
                                 filterByQuarter ? melder.quartal === filterByQuarter : true
                             )
                             .map(
-                                (melder) => `
+                                (melder) => ` 
                             <span>
                                 ${melder.id}
                                 <input type="checkbox" class="melder-checkbox" data-group="${gruppe.name}" data-melder="${melder.id}" ${melder.geprüft ? 'checked' : ''}>
