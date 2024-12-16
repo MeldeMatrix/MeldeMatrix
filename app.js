@@ -169,84 +169,125 @@ function showCreatePage() {
     });
 }
 
-// Anlage Prüfungsseite
-function showAnlagePruefung(anlageId) {
-    content.innerHTML = `
-        <h2>Prüfung der Anlage</h2>
-        <p>Prüfen Sie die Melderpunkte der Anlage mit der ID: ${anlageId}</p>
-        <div id="melderpunkte-list"></div>
-    `;
+// Show Prüfung Page
+let quartalFilter = null; // Global state for the quartal filter
+let showOnlyOpen = false; // State for showing only open points
 
-    loadAnlageDetails(anlageId);
-}
-
-async function loadAnlageDetails(anlageId) {
-    try {
-        const anlageRef = doc(db, "anlagen", anlageId);
-        const anlageDoc = await getDoc(anlageRef);
-        if (anlageDoc.exists()) {
-            const data = anlageDoc.data();
-            const melderpunkteList = document.getElementById("melderpunkte-list");
-            melderpunkteList.innerHTML = ""; // Ergebnisse leeren
-
-            data.meldergruppen.forEach((gruppe, index) => {
-                melderpunkteList.innerHTML += `
-                    <h3>Meldergruppe ${gruppe.name}</h3>
-                    <ul>
-                        ${gruppe.meldepunkte
-                            .map((punkt) => {
-                                const geprüftStatus = punkt.geprüft ? "Ja" : "Nein";
-                                return `
-                                    <li>
-                                        Melderpunkt ${punkt.id} - Geprüft: ${geprüftStatus} 
-                                        <button class="toggle-pruefung" data-id="${punkt.id}" data-gruppe="${gruppe.name}">
-                                            ${punkt.geprüft ? "Zurücksetzen" : "Prüfen"}
-                                        </button>
-                                    </li>
-                                `;
-                            })
-                            .join("")}
-                    </ul>
-                    <hr>
-                `;
-            });
-
-            document.querySelectorAll(".toggle-pruefung").forEach((button) => {
-                button.addEventListener("click", async (e) => {
-                    const punktId = parseInt(e.target.getAttribute("data-id"));
-                    const gruppeName = e.target.getAttribute("data-gruppe");
-                    await togglePruefungStatus(anlageId, gruppeName, punktId);
-                });
-            });
-        } else {
-            alert("Anlage nicht gefunden!");
-        }
-    } catch (error) {
-        alert(`Fehler beim Laden der Anlagendetails: ${error.message}`);
+async function showAnlagePruefung(anlageId) {
+    const anlageDoc = await getDoc(doc(db, "anlagen", anlageId));
+    if (!anlageDoc.exists()) {
+        alert("Anlage nicht gefunden!");
+        return;
     }
+
+    const anlageData = anlageDoc.data();
+
+    const renderPage = () => {
+        content.innerHTML = `
+            <h2>Anlage: ${anlageData.name} (ID: ${anlageData.id})</h2>
+            <select id="quartal-selector">
+                <option value="Q1" ${quartalFilter === 'Q1' ? 'selected' : ''}>Q1</option>
+                <option value="Q2" ${quartalFilter === 'Q2' ? 'selected' : ''}>Q2</option>
+                <option value="Q3" ${quartalFilter === 'Q3' ? 'selected' : ''}>Q3</option>
+                <option value="Q4" ${quartalFilter === 'Q4' ? 'selected' : ''}>Q4</option>
+            </select>
+            <button id="filter-open">${showOnlyOpen ? "Alle Punkte anzeigen" : "Nur offene Punkte anzeigen"}</button>
+            <button id="filter-quartal">${quartalFilter ? `Quartal ${quartalFilter} anzeigen` : "Quartal filtern"}</button>
+            <div id="anlage-pruefung">
+                ${anlageData.meldergruppen
+                    .map(
+                        (gruppe) => `
+                    <div>
+                        <h3>${gruppe.name}</h3>
+                        <div class="melder-container">
+                            ${gruppe.meldepunkte
+                                .filter((melder) =>
+                                    showOnlyOpen
+                                        ? !melder.geprüft
+                                        : true &&
+                                          (!quartalFilter ||
+                                              melder.quartal === quartalFilter)
+                                )
+                                .map(
+                                    (melder) => `
+                                <span>
+                                    ${melder.id}
+                                    <button class="toggle-status" data-group="${gruppe.name}" data-melder="${melder.id}" data-status="${melder.geprüft}">${melder.geprüft ? "✔️" : "❌"}</button>
+                                </span>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        bindButtons();
+    };
+
+    const bindButtons = () => {
+        // Handle the "Nur offene Punkte anzeigen" button toggle
+        document.getElementById("filter-open").addEventListener("click", () => {
+            showOnlyOpen = !showOnlyOpen;
+            renderPage();
+        });
+
+        // Handle the "Quartal filtern" button toggle
+        document.getElementById("filter-quartal").addEventListener("click", () => {
+            const selectedQuartal = document.getElementById("quartal-selector").value;
+            quartalFilter = quartalFilter === selectedQuartal ? null : selectedQuartal;
+            renderPage();
+        });
+
+        // Handle the Quartal selector change
+        document.getElementById("quartal-selector").addEventListener("change", (e) => {
+            quartalFilter = e.target.value;
+            renderPage(); // Re-render the page after the quartal change
+        });
+
+        // Event listeners for toggling the Prüfzstatus
+        document.querySelectorAll(".toggle-status").forEach((button) => {
+            button.addEventListener("click", async (e) => {
+                const groupName = e.target.getAttribute("data-group");
+                const melderId = parseInt(e.target.getAttribute("data-melder"), 10);
+                const currentStatus = e.target.getAttribute("data-status") === "true";
+                const quartal = document.getElementById("quartal-selector").value;
+
+                try {
+                    const updatedGruppen = anlageData.meldergruppen.map((gruppe) => {
+                        if (gruppe.name === groupName) {
+                            return {
+                                ...gruppe,
+                                meldepunkte: gruppe.meldepunkte.map((melder) => {
+                                    if (melder.id === melderId) {
+                                        return {
+                                            ...melder,
+                                            geprüft: !currentStatus,
+                                            quartal: quartal,
+                                        };
+                                    }
+                                    return melder;
+                                }),
+                            };
+                        }
+                        return gruppe;
+                    });
+
+                    await setDoc(doc(db, "anlagen", anlageId), {
+                        ...anlageData,
+                        meldergruppen: updatedGruppen,
+                    });
+
+                    anlageData.meldergruppen = updatedGruppen; // Update local data
+                    renderPage(); // Re-render the page with updated data
+                } catch (error) {
+                    alert(`Fehler beim Aktualisieren des Prüfstatus: ${error.message}`);
+                }
+            });
+        });
+    };
+
+    renderPage(); // Initial render
 }
-
-async function togglePruefungStatus(anlageId, gruppeName, punktId) {
-    try {
-        const anlageRef = doc(db, "anlagen", anlageId);
-        const anlageDoc = await getDoc(anlageRef);
-        const anlageData = anlageDoc.data();
-
-        // Finde die Meldergruppe und den Melderpunkt
-        const meldergruppe = anlageData.meldergruppen.find((gruppe) => gruppe.name === gruppeName);
-        const melderpunkt = meldergruppe.meldepunkte.find((punkt) => punkt.id === punktId);
-
-        // Toggle den Prüfstatus
-        melderpunkt.geprüft = !melderpunkt.geprüft;
-
-        // Speichern der Änderungen
-        await setDoc(anlageRef, anlageData);
-        loadAnlageDetails(anlageId); // Lade die Details neu
-    } catch (error) {
-        alert(`Fehler beim Ändern des Prüfstatus: ${error.message}`);
-    }
-}
-
 // Helper Function: Calculate Progress
 function calculateProgress(meldergruppen) {
     const total = meldergruppen.reduce(
