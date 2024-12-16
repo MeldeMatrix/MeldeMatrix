@@ -217,6 +217,7 @@ async function showAnlagePruefung(anlageId) {
             </select>
         </div>
         <button id="filter-open">${showOnlyOpen ? "Alle Punkte anzeigen" : "Nur offene Punkte anzeigen"}</button>
+        <button id="reset-melderpunkte">Alle Melderpunkte auf 'Geprüft: false' und 'Quartal: null' setzen</button>
         <div id="anlage-pruefung">
             ${anlageData.meldergruppen
                 .map(
@@ -252,6 +253,11 @@ async function showAnlagePruefung(anlageId) {
     document.getElementById("filter-open").addEventListener("click", () => {
         showOnlyOpen = !showOnlyOpen;
         showAnlagePruefung(anlageId); // Seite neu laden
+    });
+
+    // Handle reset melderpunkte button click
+    document.getElementById("reset-melderpunkte").addEventListener("click", async () => {
+        await resetMelderpunkte(anlageId, anlageData);
     });
 
     // Handle melder checkbox toggling
@@ -312,4 +318,25 @@ function calculateProgress(meldergruppen) {
         0
     );
     return ((checked / total) * 100).toFixed(2);
+}
+
+// Function to reset all Melderpunkte
+async function resetMelderpunkte(anlageId, anlageData) {
+    const updatedGruppen = anlageData.meldergruppen.map((gruppe) => ({
+        ...gruppe,
+        meldepunkte: gruppe.meldepunkte.map((melder) => ({
+            ...melder,
+            geprüft: false,
+            quartal: null,
+        })),
+    }));
+
+    // Update the database with reset values
+    await setDoc(doc(db, "anlagen", anlageId), {
+        ...anlageData,
+        meldergruppen: updatedGruppen,
+    });
+
+    alert("Alle Melderpunkte wurden auf 'Geprüft: false' und 'Quartal: null' gesetzt.");
+    showAnlagePruefung(anlageId); // Seite neu laden
 }
