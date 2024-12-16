@@ -357,4 +357,86 @@ async function showAnlagePruefung(anlageId) {
         showAnlagePruefung(anlageId);
     });
 }
+  // Handle reset melderpunkte button click
+    document.getElementById("reset-melderpunkte").addEventListener("click", async () => {
+        await resetMelderpunkte(anlageId, anlageData);
+    });
+
+    // Handle melder checkbox toggling
+    document.querySelectorAll(".melder-checkbox").forEach((checkbox) => {
+        checkbox.addEventListener("change", async (e) => {
+            const groupName = e.target.getAttribute("data-group");
+            const melderId = parseInt(e.target.getAttribute("data-melder"), 10);
+            const checked = e.target.checked;
+
+            if (!selectedQuartal) {
+                alert("Bitte wählen Sie zuerst das Quartal aus!");
+                return;
+            }
+
+            const updatedGruppen = anlageData.meldergruppen.map((gruppe) => {
+                if (gruppe.name === groupName) {
+                    return {
+                        ...gruppe,
+                        meldepunkte: gruppe.meldepunkte.map((melder) => {
+                            if (melder.id === melderId) {
+                                return {
+                                    ...melder,
+                                    geprüft: checked,
+                                    quartal: selectedQuartal,
+                                };
+                            }
+                            return melder;
+                        }),
+                    };
+                }
+                return gruppe;
+            });
+
+            await setDoc(doc(db, "anlagen", anlageId), {
+                ...anlageData,
+                meldergruppen: updatedGruppen,
+            });
+
+            anlageData.meldergruppen = updatedGruppen;
+            showAnlagePruefung(anlageId); // Re-render after update
+        });
+    });
+}
+
+// Helper function to calculate progress
+function calculateProgress(meldergruppen) {
+    const total = meldergruppen.reduce(
+        (sum, gruppe) => sum + gruppe.meldepunkte.length,
+        0
+    );
+    const checked = meldergruppen.reduce(
+        (sum, gruppe) =>
+            sum +
+            gruppe.meldepunkte.filter((melder) => melder.geprüft).length,
+        0
+    );
+    return ((checked / total) * 100).toFixed(2);
+}
+
+// Function to reset all Melderpunkte
+async function resetMelderpunkte(anlageId, anlageData) {
+    const updatedGruppen = anlageData.meldergruppen.map((gruppe) => ({
+        ...gruppe,
+        meldepunkte: gruppe.meldepunkte.map((melder) => ({
+            ...melder,
+            geprüft: false,
+            quartal: null,
+        })),
+    }));
+
+    await setDoc(doc(db, "anlagen", anlageId), {
+        ...anlageData,
+        meldergruppen: updatedGruppen,
+    });
+
+    alert("Alle Melderpunkte wurden zurückgesetzt.");
+    showAnlagePruefung(anlageId); // Reload the page after reset
+}
+
 
