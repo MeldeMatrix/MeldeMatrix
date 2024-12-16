@@ -43,7 +43,7 @@ let selectedQuartal = 'Q1'; // Default value for the quarter
 let showOnlyOpen = false;   // Filter for open points
 let filterByQuarter = null; // To store which quarter to filter the display (via buttons)
 
-// Event Listeners
+// Event listener for login button click (already exists)
 document.getElementById("login-button").addEventListener("click", async () => {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
@@ -53,6 +53,23 @@ document.getElementById("login-button").addEventListener("click", async () => {
         alert(`Fehler beim Anmelden: ${error.message}`);
     }
 });
+
+document.getElementById("password").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+        triggerLogin();
+    }
+});
+
+// Function to trigger login process
+async function triggerLogin() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+        alert(`Fehler beim Anmelden: ${error.message}`);
+    }
+}
 
 document.getElementById("logout-button").addEventListener("click", async () => {
     await signOut(auth);
