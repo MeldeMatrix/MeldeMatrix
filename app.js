@@ -95,7 +95,7 @@ document.getElementById("refresh-button").addEventListener("click", () => {
 async function showSearchPage() {
     content.innerHTML = `
         <h2>Anlage Suchen</h2>
-        <input type="text" id="search-term" placeholder="Anlagen-ID oder Name">
+        <input type="text" id="search-term" placeholder="Anlagen-Nr oder Name">
         <button id="perform-search">Suchen</button>
         <div id="search-results"></div>
     `;
@@ -132,7 +132,7 @@ async function showSearchPage() {
                 foundResults.forEach((data) => {
                     resultsContainer.innerHTML += `
                         <div>
-                            <p><strong>${data.name}</strong> (ID: ${data.id})</p>
+                            <p><strong>${data.name}</strong> (Anlagen-Nr: ${data.id})</p>
                             <p>Meldergruppen: ${data.meldergruppen.length}</p>
                             <p>Geprüft: ${calculateProgress(data.meldergruppen)}%</p>
                             <button class="open-anlage" data-id="${data.id}">Zur Prüfung</button>
@@ -160,7 +160,7 @@ async function showCreatePage() {
     content.innerHTML = `
         <h2>Neue Anlage Erstellen</h2>
         <input type="text" id="new-name" placeholder="Anlagenname">
-        <input type="text" id="new-id" placeholder="Anlagen-ID">
+        <input type="text" id="new-id" placeholder="Anlagen-Nr">
         <div id="meldergruppen-container">
             <div class="meldergruppe">
                 <h3>Meldegruppe 1</h3>
@@ -239,7 +239,7 @@ async function showAnlagePruefung(anlageId) {
 
     // Render page with Quartal selection and additional buttons
     content.innerHTML = `
-        <h2>Anlage: ${anlageData.name} (ID: ${anlageData.id})</h2>
+        <h2>Anlage: ${anlageData.name} (Anlagen-Nr: ${anlageData.id})</h2>
         <div>
             <label for="quartal-select">Wählen Sie das Quartal:</label>
             <select id="quartal-select">
@@ -257,7 +257,7 @@ async function showAnlagePruefung(anlageId) {
             <button class="quarter-filter" data-quarter="all">Alle</button>
         </div>
         <button id="filter-open">${showOnlyOpen ? "Alle Punkte anzeigen" : "Nur offene Punkte anzeigen"}</button>
-        <button id="reset-melderpunkte">Alle Melderpunkte zurücksetzen</button>
+        <button id="reset-melderpunkte">Alle Meldepunkte zurücksetzen</button>
         <div id="anlage-pruefung">
             ${anlageData.meldergruppen
                 .filter(gruppe => gruppe.meldepunkte.length > 0) // Nur Meldegruppen mit Meldepunkten anzeigen
