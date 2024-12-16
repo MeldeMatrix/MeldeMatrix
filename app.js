@@ -158,88 +158,56 @@ async function showAnlagePruefung(anlageId) {
 
     const anlageData = anlageDoc.data();
 
-    content.innerHTML = `
-        <h2>Anlage: ${anlageData.name} (ID: ${anlageData.id})</h2>
-        <select id="quartal-selector">
-            <option value="Q1">Q1</option>
-            <option value="Q2">Q2</option>
-            <option value="Q3">Q3</option>
-            <option value="Q4">Q4</option>
-        </select>
-        <button id="filter-open" data-filtered="false">Nur offene Punkte anzeigen</button>
-        <div id="anlage-pruefung">
-            ${anlageData.meldergruppen
-                .map(
-                    (gruppe) => `
-                <div>
-                    <h3>${gruppe.name}</h3>
-                    <div class="melder-container">
-                        ${gruppe.meldepunkte
-                            .map(
-                                (melder) => `
-                            <span>
-                                ${melder.id}
-                                <button class="toggle-status" data-group="${
-                                    gruppe.name
-                                }" data-melder="${melder.id}" data-status="${
-                                    melder.geprüft
-                                }">${melder.geprüft ? "✔️" : "❌"}</button>
-                            </span>
-                        `
-                            )
-                            .join("")}
+    const renderPage = () => {
+        content.innerHTML = `
+            <h2>Anlage: ${anlageData.name} (ID: ${anlageData.id})</h2>
+            <select id="quartal-selector">
+                <option value="Q1">Q1</option>
+                <option value="Q2">Q2</option>
+                <option value="Q3">Q3</option>
+                <option value="Q4">Q4</option>
+            </select>
+            <button id="filter-open" data-filtered="false">Nur offene Punkte anzeigen</button>
+            <div id="anlage-pruefung">
+                ${anlageData.meldergruppen
+                    .map(
+                        (gruppe) => `
+                    <div>
+                        <h3>${gruppe.name}</h3>
+                        <div class="melder-container">
+                            ${gruppe.meldepunkte
+                                .map(
+                                    (melder) => `
+                                <span>
+                                    ${melder.id}
+                                    <button class="toggle-status" data-group="${
+                                        gruppe.name
+                                    }" data-melder="${melder.id}" data-status="${
+                                        melder.geprüft
+                                    }">${melder.geprüft ? "✔️" : "❌"}</button>
+                                </span>
+                            `
+                                )
+                                .join("")}
+                        </div>
                     </div>
-                </div>
-            `
-                )
-                .join("")}
-        </div>
-    `;
-
-    // Filter button logic
-    document.getElementById("filter-open").addEventListener("click", () => {
-        const showOnlyOpen = document.getElementById("filter-open").dataset.filtered === "true";
-        const quartal = document.getElementById("quartal-selector").value;
-
-        const filteredGruppen = anlageData.meldergruppen.map((gruppe) => ({
-            ...gruppe,
-            meldepunkte: gruppe.meldepunkte.filter((melder) => {
-                if (showOnlyOpen) return true; // Zeige alle
-                return !melder.geprüft || melder.quartal !== quartal;
-            }),
-        }));
-
-        document.getElementById("filter-open").dataset.filtered = !showOnlyOpen;
-
-        const melderContainer = document.getElementById("anlage-pruefung");
-        melderContainer.innerHTML = filteredGruppen
-            .map(
-                (gruppe) => `
-            <div>
-                <h3>${gruppe.name}</h3>
-                <div class="melder-container">
-                    ${gruppe.meldepunkte
-                        .map(
-                            (melder) => `
-                        <span>
-                            ${melder.id}
-                            <button class="toggle-status" data-group="${gruppe.name}" data-melder="${melder.id}" data-status="${melder.geprüft}">${melder.geprüft ? "✔️" : "❌"}</button>
-                        </span>
-                    `
-                        )
-                        .join("")}
-                </div>
+                `
+                    )
+                    .join("")}
             </div>
-        `
-            )
-            .join("");
+        `;
 
-        // Rebind toggle buttons
+        // Bind buttons after rendering
+        bindStatusToggleButtons();
+    };
+
+    const bindStatusToggleButtons = () => {
         document.querySelectorAll(".toggle-status").forEach((button) => {
             button.addEventListener("click", async (e) => {
                 const groupName = e.target.getAttribute("data-group");
                 const melderId = parseInt(e.target.getAttribute("data-melder"), 10);
                 const currentStatus = e.target.getAttribute("data-status") === "true";
+                const quartal = document.getElementById("quartal-selector").value;
 
                 try {
                     const updatedGruppen = anlageData.meldergruppen.map((gruppe) => {
@@ -266,14 +234,16 @@ async function showAnlagePruefung(anlageId) {
                         meldergruppen: updatedGruppen,
                     });
 
-                    alert("Prüfstatus aktualisiert!");
-                    showAnlagePruefung(anlageId);
+                    anlageData.meldergruppen = updatedGruppen; // Update local data
+                    renderPage(); // Re-render the page with updated data
                 } catch (error) {
                     alert(`Fehler beim Aktualisieren des Prüfstatus: ${error.message}`);
                 }
             });
         });
-    });
+    };
+
+    renderPage(); // Initial render
 }
 
 // Helper Function: Calculate Progress
