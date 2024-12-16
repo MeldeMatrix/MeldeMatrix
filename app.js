@@ -70,7 +70,7 @@ onAuthStateChanged(auth, (user) => {
 });
 
 // Search Page
-function showSearchPage() {
+async function showSearchPage() {
     content.innerHTML = `
         <h2>Anlage Suchen</h2>
         <input type="text" id="search-term" placeholder="Anlagen-ID oder Name">
@@ -78,6 +78,7 @@ function showSearchPage() {
         <div id="search-results"></div>
     `;
 
+    // Neu binden der Event-Listener bei Suche
     document.getElementById("perform-search").addEventListener("click", async () => {
         const searchTerm = document.getElementById("search-term").value.trim().toLowerCase();
         if (!searchTerm) {
@@ -119,7 +120,7 @@ function showSearchPage() {
                     `;
                 });
 
-                // Event listeners für die Buttons
+                // Event listeners für die Buttons neu binden
                 document.querySelectorAll(".open-anlage").forEach((button) => {
                     button.addEventListener("click", (e) => {
                         const anlageId = e.target.getAttribute("data-id");
@@ -134,7 +135,7 @@ function showSearchPage() {
 }
 
 // Create Page
-function showCreatePage() {
+async function showCreatePage() {
     content.innerHTML = `
         <h2>Neue Anlage Erstellen</h2>
         <input type="text" id="new-name" placeholder="Anlagenname">
@@ -143,13 +144,11 @@ function showCreatePage() {
         <button id="create-new">Anlage Erstellen</button>
     `;
 
+    // Event listener für das Erstellen der Anlage neu binden
     document.getElementById("create-new").addEventListener("click", async () => {
         const name = document.getElementById("new-name").value;
         const id = document.getElementById("new-id").value;
-        const groupCount = parseInt(
-            document.getElementById("group-count").value,
-            10
-        );
+        const groupCount = parseInt(document.getElementById("group-count").value, 10);
 
         const meldergruppen = Array.from({ length: groupCount }, (_, i) => ({
             name: `MG${i + 1}`,
@@ -229,7 +228,7 @@ async function showAnlagePruefung(anlageId) {
     // Handle open filter toggle
     document.getElementById("filter-open").addEventListener("click", () => {
         showOnlyOpen = !showOnlyOpen;
-        renderPage(); // Neu rendern
+        showAnlagePruefung(anlageId); // Seite neu laden
     });
 
     // Handle melder checkbox toggling
@@ -272,50 +271,9 @@ async function showAnlagePruefung(anlageId) {
 
             // Re-render the page after update
             anlageData.meldergruppen = updatedGruppen; // Aktuelle Daten aktualisieren
-            renderPage(); // Seite neu rendern
+            showAnlagePruefung(anlageId); // Seite neu laden
         });
     });
-
-    // Helper function to render page
-    function renderPage() {
-        content.innerHTML = `
-            <h2>Anlage: ${anlageData.name} (ID: ${anlageData.id})</h2>
-            <div>
-                <label for="quartal-select">Wählen Sie das Quartal:</label>
-                <select id="quartal-select">
-                    <option value="Q1" ${selectedQuartal === 'Q1' ? 'selected' : ''}>Q1</option>
-                    <option value="Q2" ${selectedQuartal === 'Q2' ? 'selected' : ''}>Q2</option>
-                    <option value="Q3" ${selectedQuartal === 'Q3' ? 'selected' : ''}>Q3</option>
-                    <option value="Q4" ${selectedQuartal === 'Q4' ? 'selected' : ''}>Q4</option>
-                </select>
-            </div>
-            <button id="filter-open">${showOnlyOpen ? "Alle Punkte anzeigen" : "Nur offene Punkte anzeigen"}</button>
-            <div id="anlage-pruefung">
-                ${anlageData.meldergruppen
-                    .map(
-                        (gruppe) => `
-                    <div>
-                        <h3>${gruppe.name}</h3>
-                        <div class="melder-container">
-                            ${gruppe.meldepunkte
-                                .filter((melder) =>
-                                    showOnlyOpen
-                                        ? !melder.geprüft
-                                        : true
-                                )
-                                .map(
-                                    (melder) => `
-                                <span>
-                                    ${melder.id}
-                                    <input type="checkbox" class="melder-checkbox" data-group="${gruppe.name}" data-melder="${melder.id}" ${melder.geprüft ? 'checked' : ''}>
-                                </span>
-                            `).join('') }
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-    }
 }
 
 // Helper Function: Calculate Progress
