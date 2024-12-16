@@ -161,23 +161,62 @@ async function showCreatePage() {
         <h2>Neue Anlage Erstellen</h2>
         <input type="text" id="new-name" placeholder="Anlagenname">
         <input type="text" id="new-id" placeholder="Anlagen-ID">
-        <input type="number" id="group-count" placeholder="Anzahl Meldergruppen">
+        <div id="meldergruppen-container">
+            <div class="meldergruppe">
+                <h3>Meldegruppe 1</h3>
+                <input type="number" class="melder-count" placeholder="Anzahl Melder" value="1">
+                <label for="zd">ZD</label>
+                <input type="checkbox" class="zd-checkbox">
+                <label for="sm">SM</label>
+                <input type="checkbox" class="sm-checkbox">
+            </div>
+        </div>
+        <button id="add-meldegruppe">Weitere Meldegruppe hinzufügen</button>
         <button id="create-new">Anlage Erstellen</button>
     `;
 
+    // Add a new Meldegruppe
+    document.getElementById("add-meldegruppe").addEventListener("click", () => {
+        const meldergruppenContainer = document.getElementById("meldergruppen-container");
+        const groupCount = meldergruppenContainer.querySelectorAll(".meldergruppe").length + 1;
+        const newGroup = document.createElement("div");
+        newGroup.classList.add("meldergruppe");
+        newGroup.innerHTML = `
+            <h3>Meldegruppe ${groupCount}</h3>
+            <input type="number" class="melder-count" placeholder="Anzahl Melder" value="1">
+            <label for="zd">ZD</label>
+            <input type="checkbox" class="zd-checkbox">
+            <label for="sm">SM</label>
+            <input type="checkbox" class="sm-checkbox">
+        `;
+        meldergruppenContainer.appendChild(newGroup);
+    });
+
+    // Create the new Anlage
     document.getElementById("create-new").addEventListener("click", async () => {
         const name = document.getElementById("new-name").value;
         const id = document.getElementById("new-id").value;
-        const groupCount = parseInt(document.getElementById("group-count").value, 10);
 
-        const meldergruppen = Array.from({ length: groupCount }, (_, i) => ({
-            name: `MG${i + 1}`,
-            meldepunkte: Array.from({ length: 32 }, (_, j) => ({
-                id: j + 1,
+        // Collect all Meldegruppen data
+        const meldergruppen = [];
+        document.querySelectorAll(".meldergruppe").forEach((groupElement, index) => {
+            const melderCount = parseInt(groupElement.querySelector(".melder-count").value, 10);
+            const zdChecked = groupElement.querySelector(".zd-checkbox").checked;
+            const smChecked = groupElement.querySelector(".sm-checkbox").checked;
+            
+            const meldepunkte = Array.from({ length: melderCount }, (_, i) => ({
+                id: i + 1,
                 geprüft: false,
                 quartal: null,
-            })),
-        }));
+            }));
+
+            meldergruppen.push({
+                name: `MG${index + 1}`,
+                meldepunkte: meldepunkte,
+                zd: zdChecked,
+                sm: smChecked,
+            });
+        });
 
         try {
             await setDoc(doc(db, "anlagen", id), { name, id, meldergruppen });
