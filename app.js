@@ -169,9 +169,9 @@ function showCreatePage() {
     });
 }
 
-// Show Prüfung Page
-let quartalFilter = null;  // Global state for the quartal filter
-let showOnlyOpen = false;  // State for showing only open points
+// Global state variables for filter and status
+let quartalFilter = null;  // Quartal Filter (manuell über Button aktivierbar)
+let showOnlyOpen = false;  // Zeige nur offene Melder
 let lastSelectedQuartal = null; // Speichert das zuletzt manuell ausgewählte Quartal
 
 async function showAnlagePruefung(anlageId) {
