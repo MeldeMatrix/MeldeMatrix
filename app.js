@@ -170,8 +170,9 @@ function showCreatePage() {
 }
 
 // Show Prüfung Page
-let quartalFilter = null; // Global state for the quartal filter
-let showOnlyOpen = false; // State for showing only open points
+let quartalFilter = null;  // Global state for the quartal filter
+let showOnlyOpen = false;  // State for showing only open points
+let lastSelectedQuartal = null; // Speichert das zuletzt manuell ausgewählte Quartal
 
 async function showAnlagePruefung(anlageId) {
     const anlageDoc = await getDoc(doc(db, "anlagen", anlageId));
@@ -235,16 +236,17 @@ async function showAnlagePruefung(anlageId) {
         document.getElementById("filter-quartal").addEventListener("click", () => {
             const selectedQuartal = document.getElementById("quartal-selector").value;
             if (quartalFilter === selectedQuartal) {
-                quartalFilter = null; // If the same quartal is selected, remove the filter
+                quartalFilter = null; // Wenn das gleiche Quartal erneut gewählt wird, den Filter entfernen
             } else {
-                quartalFilter = selectedQuartal; // Otherwise, set the selected quartal
+                quartalFilter = selectedQuartal; // Sonst das ausgewählte Quartal setzen
             }
-            renderPage(); // Re-render the page after applying the filter
+            lastSelectedQuartal = quartalFilter;  // Speichern des zuletzt gewählten Quartals
+            renderPage(); // Die Seite nach der Filteränderung neu rendern
         });
 
         // Handle the Quartal selector change without filtering automatically
         document.getElementById("quartal-selector").addEventListener("change", (e) => {
-            quartalFilter = e.target.value; // Just update the quartalFilter state without rendering
+            quartalFilter = e.target.value; // Aktualisiert nur den Wert des quartalFilter ohne Filter anzuwenden
         });
 
         // Event listeners for toggling the Prüfzstatus
@@ -253,7 +255,7 @@ async function showAnlagePruefung(anlageId) {
                 const groupName = e.target.getAttribute("data-group");
                 const melderId = parseInt(e.target.getAttribute("data-melder"), 10);
                 const currentStatus = e.target.getAttribute("data-status") === "true";
-                const quartal = document.getElementById("quartal-selector").value;
+                const quartal = document.getElementById("quartal-selector").value; // Hier das aktuelle Quartal für die Änderung verwenden
 
                 try {
                     const updatedGruppen = anlageData.meldergruppen.map((gruppe) => {
@@ -264,8 +266,8 @@ async function showAnlagePruefung(anlageId) {
                                     if (melder.id === melderId) {
                                         return {
                                             ...melder,
-                                            geprüft: !currentStatus,
-                                            quartal: quartal,
+                                            geprüft: !currentStatus, // Status umkehren
+                                            quartal: quartal,  // Quartal bleibt erhalten
                                         };
                                     }
                                     return melder;
@@ -280,8 +282,8 @@ async function showAnlagePruefung(anlageId) {
                         meldergruppen: updatedGruppen,
                     });
 
-                    anlageData.meldergruppen = updatedGruppen; // Update local data
-                    renderPage(); // Re-render the page with updated data
+                    anlageData.meldergruppen = updatedGruppen; // Aktuelle Daten aktualisieren
+                    renderPage(); // Seite neu rendern ohne den Quartalsfilter zu beeinflussen
                 } catch (error) {
                     alert(`Fehler beim Aktualisieren des Prüfstatus: ${error.message}`);
                 }
