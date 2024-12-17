@@ -145,11 +145,32 @@ footer {
     display: flex;
     align-items: center;
     justify-content: center;
-    display: none; /* Anfangszustand, verborgen */
-    font-size: 18px;
-    z-index: 1000;
 }
 
 footer:hover {
     background-color: #005A9E;
+}
+
+/* Stil für den Scroll-Button */
+.scroll-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000; /* Damit der Button immer oben auf anderen Elementen bleibt */
+    display: none; /* Der Button wird anfangs nicht angezeigt */
+}
+
+/* Stil für den Button */
+.scroll-button button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.scroll-button button:hover {
+    background-color: #0056b3;
 }

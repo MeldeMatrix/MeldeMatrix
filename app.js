@@ -521,24 +521,27 @@ async function resetMelderpunkte(anlageId, anlageData) {
     showAnlagePruefung(anlageId); // Reload the page after reset
 }
 
-/ Warten, bis das Dokument geladen ist
-document.addEventListener('DOMContentLoaded', () => {
-    const scrollToTopButton = document.getElementById('scroll-to-top');
-
-    // Überwachen des Scroll-Verhaltens
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 200) { // Wenn mehr als 200px gescrollt wurde
-            scrollToTopButton.style.display = 'flex';
-        } else {
-            scrollToTopButton.style.display = 'none';
-        }
+// Funktion zum Scrollen nach oben
+function scrollToTop() {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth' // Sanftes Scrollen
     });
+}
 
-    // Klick-Event für den Scroll-Button
-    scrollToTopButton.addEventListener('click', () => {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth' // Sanftes Scrollen
-        });
-    });
-});
+// Funktion, um den Scroll-Button je nach Scroll-Position ein- oder auszublenden
+window.onscroll = function() {
+    let scrollButton = document.getElementById("scrollButton");
+
+    // Wenn der Benutzer mehr als 200px nach unten gescrollt hat, den Button anzeigen
+    if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+        scrollButton.style.display = "block";
+    } else {
+        scrollButton.style.display = "none";
+    }
+};
+
+// Stelle sicher, dass der Scroll-Button nur auf der Melderprüfseite angezeigt wird
+if (window.location.pathname.includes('melderpruefseite')) {
+    document.getElementById("scrollButton").style.display = 'block';
+}
