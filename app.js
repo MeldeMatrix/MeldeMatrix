@@ -386,7 +386,7 @@ async function showAnlagePruefung(anlageId) {
 
         showAnlagePruefung(anlageId); // Re-render page
     });
-
+}
 
     // Handle reset melderpunkte button click
     document.getElementById("reset-melderpunkte").addEventListener("click", async () => {
