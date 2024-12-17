@@ -74,15 +74,15 @@ section {
 
 .quarter-filter {
     margin: 0 5px;
-    padding: 15px 10px;
-    background-color: white;
+    padding: 5px 10px;
+    background-color: #ee0000;
     border: 1px solid #ddd;
     border-radius: 5px;
     cursor: pointer;
 }
 
 .quarter-filter:hover {
-    background-color: #eee;
+    background-color: #bf0808;
 }
 
 footer {
