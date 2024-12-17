@@ -327,32 +327,31 @@ async function showAnlagePruefung(anlageId) {
     </div>
         <div id="anlage-pruefung">
             ${anlageData.meldergruppen
-    .filter(gruppe => gruppe.meldepunkte.length > 0) // Nur Meldegruppen mit Meldepunkten anzeigen
-    .map((gruppe) => ` 
-        <div>
-            <h3>${gruppe.name} ${gruppe.zd ? "(ZD)" : ""} ${gruppe.sm ? "(SM)" : ""}</h3>
-            <div class="melder-container">
-                ${gruppe.meldepunkte
-                    .filter((melder) =>
-                        // Filter nur offene Melder
-                        showOnlyOpen
-                            ? !melder.geprüft[selectedJahr]
-                            : true
-                    )
-                    .filter((melder) =>
-                        // Filter nach Quartal UND Jahr
-                        (filterByQuarter ? melder.quartal === filterByQuarter : true) &&
-                        melder.geprüft[selectedJahr] !== undefined // Melder wurden im aktuellen Jahr geprüft
-                    )
-                    .map((melder) => ` 
-                        <span>
-                            ${melder.id}
-                            <input type="checkbox" class="melder-checkbox" data-group="${gruppe.name}" data-melder="${melder.id}" ${melder.geprüft[selectedJahr] ? 'checked' : ''}>
-                        </span>
-                    `).join('')}
-            </div>
-        </div>
-    `).join('') }
+                .filter(gruppe => gruppe.meldepunkte.length > 0) // Nur Meldegruppen mit Meldepunkten anzeigen
+                .map(
+                    (gruppe) => ` 
+                <div>
+                    <h3>${gruppe.name} ${gruppe.zd ? "(ZD)" : ""} ${gruppe.sm ? "(SM)" : ""}</h3>
+                    <div class="melder-container">
+                        ${gruppe.meldepunkte
+                            .filter((melder) =>
+                                showOnlyOpen
+                                    ? !melder.geprüft[selectedJahr]
+                                    : true
+                            )
+                            .filter((melder) =>
+                                filterByQuarter ? melder.quartal === filterByQuarter : true
+                            )
+                            .map(
+                                (melder) => ` 
+                            <span>
+                                ${melder.id}
+                                <input type="checkbox" class="melder-checkbox" data-group="${gruppe.name}" data-melder="${melder.id}" ${melder.geprüft[selectedJahr] ? 'checked' : ''}>
+                            </span>
+                        `).join('') }
+                    </div>
+                </div>
+            `).join('') }
         </div>
     `;
 
