@@ -274,7 +274,6 @@ async function showCreatePage() {
 }
 
 // Function to display the Anlage Prüfung page
-// Function to display the Anlage Prüfung page
 async function showAnlagePruefung(anlageId) {
     const anlageDoc = await getDoc(doc(db, "anlagen", anlageId));
     if (!anlageDoc.exists()) {
@@ -335,17 +334,20 @@ async function showAnlagePruefung(anlageId) {
                     <h3>${gruppe.name} ${gruppe.zd ? "(ZD)" : ""} ${gruppe.sm ? "(SM)" : ""}</h3>
                     <div class="melder-container">
                         ${gruppe.meldepunkte
-                            .filter((melder) =>
-                                showOnlyOpen
-                                    ? !melder.geprüft[selectedJahr]
-                                    : true
-                            )
-                            .filter((melder) =>
-                                filterByQuarter ? melder.quartal === filterByQuarter : melder.quartal === selectedQuartal
-                            )
-                            .filter((melder) =>
-                                melder.quartal === selectedQuartal && melder.geprüft[selectedJahr]
-                            )
+                            .filter((melder) => {
+                                // Filter nur anwenden, wenn ein Quartal ausgewählt ist
+                                if (filterByQuarter && filterByQuarter !== 'all') {
+                                    return melder.quartal === filterByQuarter;
+                                }
+                                return true; // Ohne Quartalsfilter alle anzeigen
+                            })
+                            .filter((melder) => {
+                                // "Nur offene" Filter anwenden
+                                if (showOnlyOpen) {
+                                    return !melder.geprüft[selectedJahr];
+                                }
+                                return true;
+                            })
                             .map(
                                 (melder) => ` 
                             <span>
