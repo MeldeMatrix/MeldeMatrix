@@ -119,7 +119,7 @@ async function showSearchPage() {
     content.innerHTML = `
         <h2>Anlage Suchen</h2>
         <input type="text" id="search-term" placeholder="Anlagen-Nr oder Name">
-        <button id="perform-search">Suchen</button>
+        <button id="perform-search" class="btn-class">Suchen</button>
         <div id="search-results"></div>
     `;
 
@@ -204,10 +204,10 @@ async function showCreatePage() {
                 <input type="checkbox" class="sm-checkbox">
             </div>
         </div>
-        <button id="add-meldegruppe">Weitere Meldegruppe hinzufügen</button>
+        <button id="add-meldegruppe" class="btn-class">Weitere Meldegruppe hinzufügen</button>
         <br>
         <br>
-        <button id="create-new">Anlage Erstellen</button>
+        <button id="create-new" class="btn-class">Anlage Erstellen</button>
     `;
 
     // Add a new Meldegruppe
