@@ -194,15 +194,15 @@ async function showCreatePage() {
         <h2>Neue Anlage Erstellen</h2>
         <input type="text" id="new-name" placeholder="Anlagenname">
         <input type="text" id="new-id" placeholder="Anlagen-Nr">
-        <div style="margin-top:5px">
-            <a>Akku Einbaudatum: </a>
-            <input type="text" id="new-text-field-1" placeholder="YY/JJJJ">
-        </div>
-        <div style="margin-top:5px">
-            <a>Besonderheiten: </a>
-            <input type="text" id="new-text-field-2">
-        </div>
-        <div>
+	<div style="margin-top:5px">
+	<a>Akku Einbaudatum: </a>
+        <input type="text" id="new-text-field-1" placeholder="YY/JJJJ">
+	</div>
+	<div style="margin-top:5px">
+	<a>Besonderheiten: </a>
+        <input type="text" id="new-text-field-2">
+	</div>
+	<div>
             <label for="turnus-select">Wählen Sie den Turnus:</label>
             <select id="turnus-select">
                 <option value="quarterly">Vierteljährlich</option>
@@ -250,7 +250,7 @@ async function showCreatePage() {
         const id = document.getElementById("new-id").value;
         const textField1 = document.getElementById("new-text-field-1").value;  // Neues Textfeld 1
         const textField2 = document.getElementById("new-text-field-2").value;  // Neues Textfeld 2
-        const turnus = document.getElementById("turnus-select").value;  // Get the selected Turnus
+	const turnus = document.getElementById("turnus-select").value;  // Get the selected Turnus
 
         // Collect all Meldegruppen data
         const meldergruppen = [];
@@ -274,13 +274,15 @@ async function showCreatePage() {
         });
 
         try {
-            await setDoc(doc(db, "anlagen", id), { name, id, meldergruppen, textField1, textField2, turnus });
+            await setDoc(doc(db, "anlagen", id), { name, id, meldergruppen, textField1, textField2 });
             alert("Anlage erfolgreich erstellt!");
         } catch (error) {
             alert(`Fehler beim Erstellen der Anlage: ${error.message}`);
         }
     });
 }
+
+
 
 // Function to display the Anlage Prüfung page
 async function showAnlagePruefung(anlageId) {
@@ -292,13 +294,14 @@ async function showAnlagePruefung(anlageId) {
 
     const anlageData = anlageDoc.data();
 
-    // Dynamically create year options
+    // Dynamisch die letzten 5 Jahre (inkl. aktuelles Jahr) erstellen
     const currentYear = new Date().getFullYear();
     const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - i)
         .map(year => `<option value="${year}" ${selectedJahr === year ? 'selected' : ''}>${year}</option>`)
         .join('');
 
-    // Based on Turnus (quarterly, semi-annual, annual), adjust the quarter filters
+
+	// Based on Turnus (quarterly, semi-annual, annual), adjust the quarter filters
     let quarterFilterHtml = '';
     if (anlageData.turnus === 'quarterly') {
         quarterFilterHtml = `
@@ -316,17 +319,53 @@ async function showAnlagePruefung(anlageId) {
 
     // For annual, no quarter filter is needed
 
+
+
+
+    // Render page with Quartal and Year selection and additional buttons
     content.innerHTML = `
         <h2>Anlage: ${anlageData.name} (Anlagen-Nr: ${anlageData.id})</h2>
-        <div>
+        
+
+	<div>
             <label for="quartal-select">Wählen Sie das Prüf-Quartal:</label>
+
+	<label for="quartal-select">Wählen Sie das Prüf-Quartal:</label>
             ${quarterFilterHtml}
+            
+	<select id="quartal-select">
+                <option value="Q1" ${selectedQuartal === 'Q1' ? 'selected' : ''}>Q1</option>
+                <option value="Q2" ${selectedQuartal === 'Q2' ? 'selected' : ''}>Q2</option>
+                <option value="Q3" ${selectedQuartal === 'Q3' ? 'selected' : ''}>Q3</option>
+                <option value="Q4" ${selectedQuartal === 'Q4' ? 'selected' : ''}>Q4</option>
+            </select>
 
             <label for="year-select">Wählen Sie das Prüf-Jahr:</label>
             <select id="year-select">
                 ${yearOptions}
             </select>
+
+            <button id="reset-melderpunkte" class="btn-class">Meldepunkte für das Jahr löschen</button>
         </div>
+        <div id="quarter-buttons">
+        <label for="quarter-filter">Ansichtsfilter:</label>
+        <button id="filter-open" class="btn-class">${showOnlyOpen ? "Nur offene werden angezeigt" : "Alle werden angezeigt"}</button>
+        <button class="quarter-filter ${filterByQuarter === 'Q1' ? 'active' : ''}" data-quarter="Q1">Q1</button>
+        <button class="quarter-filter ${filterByQuarter === 'Q2' ? 'active' : ''}" data-quarter="Q2">Q2</button>
+        <button class="quarter-filter ${filterByQuarter === 'Q3' ? 'active' : ''}" data-quarter="Q3">Q3</button>
+        <button class="quarter-filter ${filterByQuarter === 'Q4' ? 'active' : ''}" data-quarter="Q4">Q4</button>
+        <button class="quarter-filter ${filterByQuarter === null ? 'active' : ''}" data-quarter="all">Alle</button>
+
+
+	<div style="margin-top:5px">
+	<label for="text-field-1">Akku Einbaudatum:</label>
+        	<input type="text" id="text-field-1" value="${anlageData.textField1 || ''}" />
+	</div>
+	<div style="margin-top:5px">
+	<label for="text-field-2">Besonderheiten:</label>
+        	<input style="width: 25%" "type="text" id="text-field-2" value="${anlageData.textField2 || ''}" />
+	</div>
+    </div>
         <div id="anlage-pruefung">
             ${anlageData.meldergruppen
                 .filter(gruppe => gruppe.meldepunkte.length > 0) // Nur Meldegruppen mit Meldepunkten anzeigen
