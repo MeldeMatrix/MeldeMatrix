@@ -419,19 +419,26 @@ document.querySelectorAll(".melder-checkbox").forEach((checkbox) => {
 });
 }
 
-// Helper function to calculate progress
+// Helper function to calculate progress for the current year
 function calculateProgress(meldergruppen) {
+    const currentYear = new Date().getFullYear(); // Aktuelles Jahr ermitteln
+
     const total = meldergruppen.reduce(
         (sum, gruppe) => sum + gruppe.meldepunkte.length,
         0
     );
+
     const checked = meldergruppen.reduce(
         (sum, gruppe) =>
             sum +
-            gruppe.meldepunkte.filter((melder) => melder.geprüft).length,
+            gruppe.meldepunkte.filter(
+                (melder) => melder.geprüft[currentYear]
+            ).length,
         0
     );
-    return ((checked / total) * 100).toFixed(2);
+
+    // Verhindert Division durch Null, falls es keine Meldepunkte gibt
+    return total > 0 ? ((checked / total) * 100).toFixed(2) : "0.00";
 }
 
 // Function to reset all Melderpunkte
