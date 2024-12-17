@@ -274,6 +274,7 @@ async function showCreatePage() {
 }
 
 // Function to display the Anlage Prüfung page
+// Function to display the Anlage Prüfung page
 async function showAnlagePruefung(anlageId) {
     const anlageDoc = await getDoc(doc(db, "anlagen", anlageId));
     if (!anlageDoc.exists()) {
@@ -340,7 +341,10 @@ async function showAnlagePruefung(anlageId) {
                                     : true
                             )
                             .filter((melder) =>
-                                filterByQuarter ? melder.quartal === filterByQuarter : true
+                                filterByQuarter ? melder.quartal === filterByQuarter : melder.quartal === selectedQuartal
+                            )
+                            .filter((melder) =>
+                                melder.quartal === selectedQuartal && melder.geprüft[selectedJahr]
                             )
                             .map(
                                 (melder) => ` 
@@ -468,6 +472,7 @@ document.querySelectorAll(".melder-checkbox").forEach((checkbox) => {
     });
 });
 }
+
 
 // Helper function to calculate progress for the current year
 function calculateProgress(meldergruppen) {
