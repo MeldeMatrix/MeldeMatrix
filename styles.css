@@ -68,7 +68,7 @@ section {
     background-color: #ee0000;
     color: white;
     font-weight: bold;
-    border: none;
+    border: 1px solid #000000;
     outline: none;
 }
 
@@ -84,6 +84,18 @@ section {
 .quarter-filter:hover {
     background-color: #bbbbbb;
 }
+
+
+btnOffenePunkte {
+    margin: 2px 5px;
+    padding: 5px 10px;
+    background-color: #dddddd;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+
 
 footer {
     position: fixed;
