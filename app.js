@@ -168,7 +168,7 @@ async function showSearchPage() {
                             <p><strong>${data.name}</strong> (Anlagen-Nr: ${data.id})</p>
                             <p>Meldergruppen: ${data.meldergruppen.length}</p>
                             <p>Geprüft: ${calculateProgress(data.meldergruppen)}%</p>
-                            <button class="open-anlage" data-id="${data.id}" class="btn-class">Zur Prüfung</button>
+                            <button class="open-anlage btn-class" data-id="${data.id}">Zur Prüfung</button>
                         </div>
                         <hr>
                     `;
