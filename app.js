@@ -349,12 +349,6 @@ async function showAnlagePruefung(anlageId) {
 	<div>
             <label for="quartal-select">Wählen Sie das Prüf-Quartal:</label>
             
-	<select id="quartal-select">
-                <option value="Q1" ${selectedQuartal === 'Q1' ? 'selected' : ''}>Q1</option>
-                <option value="Q2" ${selectedQuartal === 'Q2' ? 'selected' : ''}>Q2</option>
-                <option value="Q3" ${selectedQuartal === 'Q3' ? 'selected' : ''}>Q3</option>
-                <option value="Q4" ${selectedQuartal === 'Q4' ? 'selected' : ''}>Q4</option>
-            </select>
 	${quarterselectturnus}
 
             <label for="year-select">Wählen Sie das Prüf-Jahr:</label>
