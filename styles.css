@@ -85,13 +85,17 @@ section {
     background-color: #bbbbbb;
 }
 
-#btn-class {
+.btn-class {
     margin: 2px 5px;
     padding: 5px 10px;
     background-color: #dddddd;
     border: 1px solid #ddd;
     border-radius: 5px;
     cursor: pointer;
+}
+
+.btn-class:hover {
+    background-color: #bbbbbb;
 }
 
 footer {
