@@ -168,7 +168,7 @@ async function showSearchPage() {
                             <p><strong>${data.name}</strong> (Anlagen-Nr: ${data.id})</p>
                             <p>Meldergruppen: ${data.meldergruppen.length}</p>
                             <p>Geprüft: ${calculateProgress(data.meldergruppen)}%</p>
-                            <button class="open-anlage" data-id="${data.id}">Zur Prüfung</button>
+                            <button class="open-anlage" data-id="${data.id}" class="btn-class">Zur Prüfung</button>
                         </div>
                         <hr>
                     `;
@@ -204,6 +204,7 @@ async function showCreatePage() {
                 <input type="checkbox" class="sm-checkbox">
             </div>
         </div>
+	<br>
         <button id="add-meldegruppe" class="btn-class">Weitere Meldegruppe hinzufügen</button>
         <br>
         <br>
@@ -299,7 +300,7 @@ async function showAnlagePruefung(anlageId) {
         </div>
         <div id="quarter-buttons">
         <label for="quarter-filter">Ansichtsfilter:</label>
-        <button id="filter-open" class="btn-class">${showOnlyOpen ? "Alle Punkte anzeigen" : "Nur offene Punkte anzeigen"}</button>
+        <button id="filter-open" class="btn-class">${showOnlyOpen ? "Nur offene werden angezeigt" : "Alle werden angezeigt"}</button>
         <button class="quarter-filter ${filterByQuarter === 'Q1' ? 'active' : ''}" data-quarter="Q1">Q1</button>
         <button class="quarter-filter ${filterByQuarter === 'Q2' ? 'active' : ''}" data-quarter="Q2">Q2</button>
         <button class="quarter-filter ${filterByQuarter === 'Q3' ? 'active' : ''}" data-quarter="Q3">Q3</button>
