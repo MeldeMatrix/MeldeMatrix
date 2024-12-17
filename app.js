@@ -329,8 +329,6 @@ async function showAnlagePruefung(anlageId) {
 
 	<div>
             <label for="quartal-select">Wählen Sie das Prüf-Quartal:</label>
-
-	<label for="quartal-select">Wählen Sie das Prüf-Quartal:</label>
             ${quarterFilterHtml}
             
 	<select id="quartal-select">
@@ -350,10 +348,7 @@ async function showAnlagePruefung(anlageId) {
         <div id="quarter-buttons">
         <label for="quarter-filter">Ansichtsfilter:</label>
         <button id="filter-open" class="btn-class">${showOnlyOpen ? "Nur offene werden angezeigt" : "Alle werden angezeigt"}</button>
-        <button class="quarter-filter ${filterByQuarter === 'Q1' ? 'active' : ''}" data-quarter="Q1">Q1</button>
-        <button class="quarter-filter ${filterByQuarter === 'Q2' ? 'active' : ''}" data-quarter="Q2">Q2</button>
-        <button class="quarter-filter ${filterByQuarter === 'Q3' ? 'active' : ''}" data-quarter="Q3">Q3</button>
-        <button class="quarter-filter ${filterByQuarter === 'Q4' ? 'active' : ''}" data-quarter="Q4">Q4</button>
+        ${quarterFilterHtml}
         <button class="quarter-filter ${filterByQuarter === null ? 'active' : ''}" data-quarter="all">Alle</button>
 
 
