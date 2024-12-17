@@ -284,7 +284,7 @@ async function showCreatePage() {
 
 
 
-// Function to display the Anlage Prüfung page
+// Funktion zum Anzeigen der Prüfungsansicht für eine bestimmte Anlage
 async function showAnlagePruefung(anlageId) {
     // Setze selectedQuartal zurück auf 'Q1' und selectedJahr zurück auf das aktuelle Jahr, wenn die Anlage gewechselt wird
     if (currentAnlageId !== anlageId) {
@@ -325,9 +325,6 @@ async function showAnlagePruefung(anlageId) {
         `;
     }
 
-    // Für Jahresprüfung wird kein Quartalsfilter benötigt
-
-    // Quartalsauswahl basierend auf dem Turnus
     let quarterselectturnus = '';
     if (anlageData.turnus === 'quarterly') {
         quarterselectturnus = `
@@ -349,7 +346,7 @@ async function showAnlagePruefung(anlageId) {
         `;
     }
 
-    // Render page with Quartal and Year selection and additional buttons
+    // Render page with Quartal and Year selection
     content.innerHTML = `
         <h2>Anlage: ${anlageData.name} (Anlagen-Nr: ${anlageData.id})</h2>
         <div>
@@ -485,7 +482,7 @@ async function showAnlagePruefung(anlageId) {
             const melderId = parseInt(e.target.getAttribute("data-melder"), 10);
             const isChecked = e.target.checked;
 
-            // Update checked status for the selected year
+            // Update checked status for the selected year and quarter
             await setDoc(doc(db, "anlagen", anlageId), {
                 ...anlageData,
                 meldergruppen: anlageData.meldergruppen.map((gruppe) => {
@@ -498,7 +495,10 @@ async function showAnlagePruefung(anlageId) {
                                         ...melder,
                                         geprüft: {
                                             ...melder.geprüft,
-                                            [selectedJahr]: isChecked,
+                                            [selectedJahr]: {
+                                                ...melder.geprüft[selectedJahr],
+                                                [selectedQuartal]: isChecked
+                                            }
                                         }
                                     };
                                 }
@@ -511,7 +511,6 @@ async function showAnlagePruefung(anlageId) {
             }, { merge: true });
         });
     });
-
 }
 
 // Helper function to calculate progress for the current year
