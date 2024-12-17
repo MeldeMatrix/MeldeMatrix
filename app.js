@@ -363,40 +363,44 @@ async function showAnlagePruefung(anlageId) {
         await resetMelderpunkte(anlageId, anlageData);
     });
 
-    // Handle melder checkbox toggling
-    document.querySelectorAll(".melder-checkbox").forEach((checkbox) => {
-        checkbox.addEventListener("change", async (e) => {
-            const groupName = e.target.getAttribute("data-group");
-            const melderId = parseInt(e.target.getAttribute("data-melder"), 10);
-            const checked = e.target.checked;
+   // Handle melder checkbox toggling
+document.querySelectorAll(".melder-checkbox").forEach((checkbox) => {
+    checkbox.addEventListener("change", async (e) => {
+        const groupName = e.target.getAttribute("data-group");
+        const melderId = parseInt(e.target.getAttribute("data-melder"), 10);
+        const checked = e.target.checked;
 
-            if (!selectedQuartal) {
-                alert("Bitte wählen Sie zuerst das Quartal aus!");
-                return;
+        if (!selectedQuartal) {
+            alert("Bitte wählen Sie zuerst das Quartal aus!");
+            return;
+        }
+
+        const updatedGruppen = anlageData.meldergruppen.map((gruppe) => {
+            if (gruppe.name === groupName) {
+                return {
+                    ...gruppe,
+                    meldepunkte: gruppe.meldepunkte.map((melder) => {
+                        if (melder.id === melderId) {
+                            return {
+                                ...melder,
+                                geprüft: checked
+                                    ? { ...melder.geprüft, [selectedJahr]: true }
+                                    : Object.fromEntries(
+                                        Object.entries(melder.geprüft).filter(
+                                            ([year]) => parseInt(year) !== selectedJahr
+                                        )
+                                    ),
+                                quartal: checked ? selectedQuartal : null,
+                            };
+                        }
+                        return melder;
+                    }),
+                };
             }
+            return gruppe;
+        });
 
-            const updatedGruppen = anlageData.meldergruppen.map((gruppe) => {
-                if (gruppe.name === groupName) {
-                    return {
-                        ...gruppe,
-                        meldepunkte: gruppe.meldepunkte.map((melder) => {
-                            if (melder.id === melderId) {
-                                return {
-                                    ...melder,
-                                    geprüft: {
-                                        ...melder.geprüft,
-                                        [selectedJahr]: checked,
-                                    },
-                                    quartal: selectedQuartal,
-                                };
-                            }
-                            return melder;
-                        }),
-                    };
-                }
-                return gruppe;
-            });
-
+        try {
             await setDoc(doc(db, "anlagen", anlageId), {
                 ...anlageData,
                 meldergruppen: updatedGruppen,
@@ -404,8 +408,11 @@ async function showAnlagePruefung(anlageId) {
 
             anlageData.meldergruppen = updatedGruppen;
             showAnlagePruefung(anlageId); // Re-render after update
-        });
+        } catch (error) {
+            alert(`Fehler beim Speichern der Änderungen: ${error.message}`);
+        }
     });
+});
 }
 
 // Helper function to calculate progress
