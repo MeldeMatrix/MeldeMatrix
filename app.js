@@ -272,6 +272,12 @@ async function showAnlagePruefung(anlageId) {
 
     const anlageData = anlageDoc.data();
 
+    // Dynamisch die letzten 5 Jahre (inkl. aktuelles Jahr) erstellen
+    const currentYear = new Date().getFullYear();
+    const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - i)
+        .map(year => `<option value="${year}" ${selectedJahr === year ? 'selected' : ''}>${year}</option>`)
+        .join('');
+
     // Render page with Quartal and Year selection and additional buttons
     content.innerHTML = `
         <h2>Anlage: ${anlageData.name} (Anlagen-Nr: ${anlageData.id})</h2>
@@ -286,9 +292,7 @@ async function showAnlagePruefung(anlageId) {
 
             <label for="year-select">Wählen Sie das Prüf-Jahr:</label>
             <select id="year-select">
-                <option value="2024" ${selectedJahr === 2024 ? 'selected' : ''}>2024</option>
-                <option value="2023" ${selectedJahr === 2023 ? 'selected' : ''}>2023</option>
-                <option value="2022" ${selectedJahr === 2022 ? 'selected' : ''}>2022</option>
+                ${yearOptions}
             </select>
 
             <button id="reset-melderpunkte">Alle Meldepunkte zurücksetzen</button>
