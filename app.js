@@ -306,7 +306,7 @@ async function showAnlagePruefung(anlageId) {
                 ${yearOptions}
             </select>
 
-            <button id="reset-melderpunkte" class="btn-class">Alle Meldepunkte zurücksetzen</button>
+            <button id="reset-melderpunkte" class="btn-class">Meldepunkte für das Jahr löschen</button>
         </div>
         <div id="quarter-buttons">
         <label for="quarter-filter">Ansichtsfilter:</label>
