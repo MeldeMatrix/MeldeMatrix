@@ -194,6 +194,8 @@ async function showCreatePage() {
         <h2>Neue Anlage Erstellen</h2>
         <input type="text" id="new-name" placeholder="Anlagenname">
         <input type="text" id="new-id" placeholder="Anlagen-Nr">
+        <input type="text" id="new-text-field-1" placeholder="Zusätzliches Feld 1">
+        <input type="text" id="new-text-field-2" placeholder="Zusätzliches Feld 2">
         <div id="meldergruppen-container">
             <div class="meldergruppe">
                 <h3>Meldegruppe 1</h3>
@@ -204,14 +206,14 @@ async function showCreatePage() {
                 <input type="checkbox" class="sm-checkbox">
             </div>
         </div>
-	<br>
+        <br>
         <button id="add-meldegruppe" class="btn-class">Weitere Meldegruppe hinzufügen</button>
         <br>
         <br>
         <button id="create-new" class="btn-class">Anlage Erstellen</button>
     `;
 
-    // Add a new Meldegruppe
+    // Event Listener für "Weitere Meldegruppe hinzufügen"
     document.getElementById("add-meldegruppe").addEventListener("click", () => {
         const meldergruppenContainer = document.getElementById("meldergruppen-container");
         const groupCount = meldergruppenContainer.querySelectorAll(".meldergruppe").length + 1;
@@ -228,10 +230,12 @@ async function showCreatePage() {
         meldergruppenContainer.appendChild(newGroup);
     });
 
-    // Create the new Anlage
+    // Event Listener für das Erstellen der neuen Anlage
     document.getElementById("create-new").addEventListener("click", async () => {
         const name = document.getElementById("new-name").value;
         const id = document.getElementById("new-id").value;
+        const textField1 = document.getElementById("new-text-field-1").value;  // Neues Textfeld 1
+        const textField2 = document.getElementById("new-text-field-2").value;  // Neues Textfeld 2
 
         // Collect all Meldegruppen data
         const meldergruppen = [];
@@ -255,7 +259,7 @@ async function showCreatePage() {
         });
 
         try {
-            await setDoc(doc(db, "anlagen", id), { name, id, meldergruppen });
+            await setDoc(doc(db, "anlagen", id), { name, id, meldergruppen, textField1, textField2 });
             alert("Anlage erfolgreich erstellt!");
         } catch (error) {
             alert(`Fehler beim Erstellen der Anlage: ${error.message}`);
@@ -306,6 +310,10 @@ async function showAnlagePruefung(anlageId) {
         <button class="quarter-filter ${filterByQuarter === 'Q3' ? 'active' : ''}" data-quarter="Q3">Q3</button>
         <button class="quarter-filter ${filterByQuarter === 'Q4' ? 'active' : ''}" data-quarter="Q4">Q4</button>
         <button class="quarter-filter ${filterByQuarter === null ? 'active' : ''}" data-quarter="all">Alle</button>
+	<label for="text-field-1">Zusätzliches Feld 1:</label>
+        	<input type="text" id="text-field-1" value="${anlageData.textField1 || ''}" />
+	<label for="text-field-2">Zusätzliches Feld 2:</label>
+        	<input type="text" id="text-field-2" value="${anlageData.textField2 || ''}" />
     </div>
         <div id="anlage-pruefung">
             ${anlageData.meldergruppen
@@ -336,6 +344,23 @@ async function showAnlagePruefung(anlageId) {
             `).join('') }
         </div>
     `;
+
+	// Event listener für die Änderungen der Textfelder
+    	document.getElementById("text-field-1").addEventListener("change", async (e) => {
+        const newValue = e.target.value;
+        await setDoc(doc(db, "anlagen", anlageId), {
+            ...anlageData,
+            textField1: newValue
+        }, { merge: true });
+    });
+
+    document.getElementById("text-field-2").addEventListener("change", async (e) => {
+        const newValue = e.target.value;
+        await setDoc(doc(db, "anlagen", anlageId), {
+            ...anlageData,
+            textField2: newValue
+        }, { merge: true });
+    });
 
     // Event listener for quartal selection
     document.getElementById("quartal-select").addEventListener("change", (e) => {
