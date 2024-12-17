@@ -287,9 +287,8 @@ async function showAnlagePruefung(anlageId) {
     const currentYear = new Date().getFullYear();
     const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - i)
         .map(year => `<option value="${year}" ${selectedJahr === year ? 'selected' : ''}>${year}</option>`)
-        .join('');
+        .join(''); 
 
-    // Render page with Quartal and Year selection and additional buttons
     content.innerHTML = `
         <h2>Anlage: ${anlageData.name} (Anlagen-Nr: ${anlageData.id})</h2>
         <div>
@@ -309,55 +308,46 @@ async function showAnlagePruefung(anlageId) {
             <button id="reset-melderpunkte" class="btn-class">Alle Meldepunkte zurücksetzen</button>
         </div>
         <div id="quarter-buttons">
-        <label for="quarter-filter">Ansichtsfilter:</label>
-        <button id="filter-open" class="btn-class">${showOnlyOpen ? "Nur offene werden angezeigt" : "Alle werden angezeigt"}</button>
-        <button class="quarter-filter ${filterByQuarter === 'Q1' ? 'active' : ''}" data-quarter="Q1">Q1</button>
-        <button class="quarter-filter ${filterByQuarter === 'Q2' ? 'active' : ''}" data-quarter="Q2">Q2</button>
-        <button class="quarter-filter ${filterByQuarter === 'Q3' ? 'active' : ''}" data-quarter="Q3">Q3</button>
-        <button class="quarter-filter ${filterByQuarter === 'Q4' ? 'active' : ''}" data-quarter="Q4">Q4</button>
-        <button class="quarter-filter ${filterByQuarter === null ? 'active' : ''}" data-quarter="all">Alle</button>
-	<div style="margin-top:5px">
-	<label for="text-field-1">Akku Einbaudatum:</label>
-        	<input type="text" id="text-field-1" value="${anlageData.textField1 || ''}" />
-	</div>
-	<div style="margin-top:5px">
-	<label for="text-field-2">Besonderheiten:</label>
-        	<input style="width: 25%" "type="text" id="text-field-2" value="${anlageData.textField2 || ''}" />
-	</div>
-    </div>
+            <label for="quarter-filter">Ansichtsfilter:</label>
+            <button id="filter-open" class="btn-class">${showOnlyOpen ? "Nur offene werden angezeigt" : "Alle werden angezeigt"}</button>
+            <button class="quarter-filter ${filterByQuarter === 'Q1' ? 'active' : ''}" data-quarter="Q1">Q1</button>
+            <button class="quarter-filter ${filterByQuarter === 'Q2' ? 'active' : ''}" data-quarter="Q2">Q2</button>
+            <button class="quarter-filter ${filterByQuarter === 'Q3' ? 'active' : ''}" data-quarter="Q3">Q3</button>
+            <button class="quarter-filter ${filterByQuarter === 'Q4' ? 'active' : ''}" data-quarter="Q4">Q4</button>
+            <button class="quarter-filter ${filterByQuarter === null ? 'active' : ''}" data-quarter="all">Alle</button>
+        </div>
         <div id="anlage-pruefung">
             ${anlageData.meldergruppen
-    .filter(gruppe => gruppe.meldepunkte.length > 0) // Nur Meldegruppen mit Meldepunkten anzeigen
-    .map((gruppe) => ` 
-        <div>
-            <h3>${gruppe.name} ${gruppe.zd ? "(ZD)" : ""} ${gruppe.sm ? "(SM)" : ""}</h3>
-            <div class="melder-container">
-                ${gruppe.meldepunkte
-                    .filter((melder) =>
-                        // Filter nur offene Melder
-                        showOnlyOpen
-                            ? !melder.geprüft[selectedJahr]
-                            : true
-                    )
-                    .filter((melder) =>
-                        // Filter nach Quartal UND Jahr
-                        (filterByQuarter ? melder.quartal === filterByQuarter : true) &&
-                        melder.geprüft[selectedJahr] !== undefined // Melder wurden im aktuellen Jahr geprüft
-                    )
-                    .map((melder) => ` 
-                        <span>
-                            ${melder.id}
-                            <input type="checkbox" class="melder-checkbox" data-group="${gruppe.name}" data-melder="${melder.id}" ${melder.geprüft[selectedJahr] ? 'checked' : ''}>
-                        </span>
-                    `).join('')}
-            </div>
-        </div>
-    `).join('') }
+                .filter(gruppe => gruppe.meldepunkte.length > 0) // Nur Meldegruppen mit Meldepunkten anzeigen
+                .map(
+                    (gruppe) => ` 
+                    <div>
+                        <h3>${gruppe.name} ${gruppe.zd ? "(ZD)" : ""} ${gruppe.sm ? "(SM)" : ""}</h3>
+                        <div class="melder-container">
+                            ${gruppe.meldepunkte
+                                .filter((melder) =>
+                                    showOnlyOpen
+                                        ? !melder.geprüft[selectedJahr]
+                                        : true
+                                )
+                                .filter((melder) =>
+                                    melder.quartal === filterByQuarter || filterByQuarter === null
+                                )
+                                .map(
+                                    (melder) => ` 
+                                    <span>
+                                        ${melder.id}
+                                        <input type="checkbox" class="melder-checkbox" data-group="${gruppe.name}" data-melder="${melder.id}" ${melder.geprüft[selectedJahr] ? 'checked' : ''}>
+                                    </span>
+                                `).join('') }
+                        </div>
+                    </div>
+                `).join('') }
         </div>
     `;
 
-	// Event listener für die Änderungen der Textfelder
-    	document.getElementById("text-field-1").addEventListener("change", async (e) => {
+    // Event listener für die Änderungen der Textfelder
+    document.getElementById("text-field-1").addEventListener("change", async (e) => {
         const newValue = e.target.value;
         await setDoc(doc(db, "anlagen", anlageId), {
             ...anlageData,
@@ -385,33 +375,32 @@ async function showAnlagePruefung(anlageId) {
     });
 
     // Event listeners für Quartalsfilter
-document.querySelectorAll(".quarter-filter").forEach((button) => {
-    button.addEventListener("click", (e) => {
-        const quarter = e.target.getAttribute("data-quarter");
-        filterByQuarter = quarter === 'all' ? null : quarter;
+    document.querySelectorAll(".quarter-filter").forEach((button) => {
+        button.addEventListener("click", (e) => {
+            const quarter = e.target.getAttribute("data-quarter");
+            filterByQuarter = quarter === 'all' ? null : quarter;
 
-        // Entferne die aktive Klasse von allen Buttons
-        document.querySelectorAll(".quarter-filter").forEach((btn) => {
-            btn.classList.remove("active");
+            // Entferne die aktive Klasse von allen Buttons
+            document.querySelectorAll(".quarter-filter").forEach((btn) => {
+                btn.classList.remove("active");
+            });
+
+            // Füge die aktive Klasse dem geklickten Button hinzu
+            e.target.classList.add("active");
+
+            showAnlagePruefung(anlageId); // Seite mit dem gewählten Filter neu rendern
         });
-
-        // Füge die aktive Klasse dem geklickten Button hinzu
-        e.target.classList.add("active");
-
-        showAnlagePruefung(anlageId); // Seite mit dem gewählten Filter neu rendern
     });
-});
 
     // Handle open filter toggle
-document.getElementById("filter-open").addEventListener("click", () => {
-    showOnlyOpen = !showOnlyOpen;
+    document.getElementById("filter-open").addEventListener("click", () => {
+        showOnlyOpen = !showOnlyOpen;
 
-    const filterOpenButton = document.getElementById("filter-open");
-    filterOpenButton.classList.toggle("active", showOnlyOpen); // Active-Klasse basierend auf Zustand
+        const filterOpenButton = document.getElementById("filter-open");
+        filterOpenButton.classList.toggle("active", showOnlyOpen); // Active-Klasse basierend auf Zustand
 
-    showAnlagePruefung(anlageId); // Re-render page
-});
-
+        showAnlagePruefung(anlageId); // Re-render page
+    });
 
     // Handle reset melderpunkte button click
     document.getElementById("reset-melderpunkte").addEventListener("click", async () => {
@@ -419,55 +408,55 @@ document.getElementById("filter-open").addEventListener("click", () => {
     });
 
    // Handle melder checkbox toggling
-document.querySelectorAll(".melder-checkbox").forEach((checkbox) => {
-    checkbox.addEventListener("change", async (e) => {
-        const groupName = e.target.getAttribute("data-group");
-        const melderId = parseInt(e.target.getAttribute("data-melder"), 10);
-        const checked = e.target.checked;
+    document.querySelectorAll(".melder-checkbox").forEach((checkbox) => {
+        checkbox.addEventListener("change", async (e) => {
+            const groupName = e.target.getAttribute("data-group");
+            const melderId = parseInt(e.target.getAttribute("data-melder"), 10);
+            const checked = e.target.checked;
 
-        if (!selectedQuartal) {
-            alert("Bitte wählen Sie zuerst das Quartal aus!");
-            return;
-        }
-
-        const updatedGruppen = anlageData.meldergruppen.map((gruppe) => {
-            if (gruppe.name === groupName) {
-                return {
-                    ...gruppe,
-                    meldepunkte: gruppe.meldepunkte.map((melder) => {
-                        if (melder.id === melderId) {
-                            return {
-                                ...melder,
-                                geprüft: checked
-                                    ? { ...melder.geprüft, [selectedJahr]: true }
-                                    : Object.fromEntries(
-                                        Object.entries(melder.geprüft).filter(
-                                            ([year]) => parseInt(year) !== selectedJahr
-                                        )
-                                    ),
-                                quartal: checked ? selectedQuartal : null,
-                            };
-                        }
-                        return melder;
-                    }),
-                };
+            if (!selectedQuartal) {
+                alert("Bitte wählen Sie zuerst das Quartal aus!");
+                return;
             }
-            return gruppe;
-        });
 
-        try {
-            await setDoc(doc(db, "anlagen", anlageId), {
-                ...anlageData,
-                meldergruppen: updatedGruppen,
+            const updatedGruppen = anlageData.meldergruppen.map((gruppe) => {
+                if (gruppe.name === groupName) {
+                    return {
+                        ...gruppe,
+                        meldepunkte: gruppe.meldepunkte.map((melder) => {
+                            if (melder.id === melderId) {
+                                return {
+                                    ...melder,
+                                    geprüft: checked
+                                        ? { ...melder.geprüft, [selectedJahr]: true }
+                                        : Object.fromEntries(
+                                            Object.entries(melder.geprüft).filter(
+                                                ([year]) => parseInt(year) !== selectedJahr
+                                            )
+                                        ),
+                                    quartal: checked ? selectedQuartal : null,
+                                };
+                            }
+                            return melder;
+                        }),
+                    };
+                }
+                return gruppe;
             });
 
-            anlageData.meldergruppen = updatedGruppen;
-            showAnlagePruefung(anlageId); // Re-render after update
-        } catch (error) {
-            alert(`Fehler beim Speichern der Änderungen: ${error.message}`);
-        }
+            try {
+                await setDoc(doc(db, "anlagen", anlageId), {
+                    ...anlageData,
+                    meldergruppen: updatedGruppen,
+                });
+
+                anlageData.meldergruppen = updatedGruppen;
+                showAnlagePruefung(anlageId); // Re-render after update
+            } catch (error) {
+                alert(`Fehler beim Speichern der Änderungen: ${error.message}`);
+            }
+        });
     });
-});
 }
 
 // Helper function to calculate progress for the current year
