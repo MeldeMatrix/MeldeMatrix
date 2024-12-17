@@ -286,6 +286,11 @@ async function showCreatePage() {
 
 // Function to display the Anlage Prüfung page
 async function showAnlagePruefung(anlageId) {
+    // Setze selectedQuartal zurück auf 'Q1', wenn die Anlage-ID geändert wird
+    if (currentAnlageId !== anlageId) {
+        selectedQuartal = 'Q1'; // Zurücksetzen des Quartals auf Q1
+    }
+
     const anlageDoc = await getDoc(doc(db, "anlagen", anlageId));
     if (!anlageDoc.exists()) {
         alert("Anlage nicht gefunden!");
