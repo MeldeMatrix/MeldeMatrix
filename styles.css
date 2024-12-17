@@ -57,11 +57,32 @@ section {
 }
 
 #auth-section button:hover {
-    background-color: #005A9E;
+    background-color: #bf0808;
 }
 
 #content {
     margin-top: 20px;
+}
+
+.quarter-filter.active {
+    background-color: #0078D4;
+    color: white;
+    font-weight: bold;
+    border: none;
+    outline: none;
+}
+
+.quarter-filter {
+    margin: 0 5px;
+    padding: 10px 15px;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.quarter-filter:hover {
+    background-color: #eee;
 }
 
 footer {

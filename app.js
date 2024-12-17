@@ -298,14 +298,14 @@ async function showAnlagePruefung(anlageId) {
             <button id="reset-melderpunkte">Alle Meldepunkte zurücksetzen</button>
         </div>
         <div id="quarter-buttons">
-            <label for="quarter-filter">Ansichtsfilter:</label>
-            <button id="filter-open">${showOnlyOpen ? "Alle Punkte anzeigen" : "Nur offene Punkte anzeigen"}</button>
-            <button class="quarter-filter" data-quarter="Q1">Q1</button>
-            <button class="quarter-filter" data-quarter="Q2">Q2</button>
-            <button class="quarter-filter" data-quarter="Q3">Q3</button>
-            <button class="quarter-filter" data-quarter="Q4">Q4</button>
-            <button class="quarter-filter" data-quarter="all">Alle</button>
-        </div>
+        <label for="quarter-filter">Ansichtsfilter:</label>
+        <button id="filter-open">${showOnlyOpen ? "Alle Punkte anzeigen" : "Nur offene Punkte anzeigen"}</button>
+        <button class="quarter-filter ${filterByQuarter === 'Q1' ? 'active' : ''}" data-quarter="Q1">Q1</button>
+        <button class="quarter-filter ${filterByQuarter === 'Q2' ? 'active' : ''}" data-quarter="Q2">Q2</button>
+        <button class="quarter-filter ${filterByQuarter === 'Q3' ? 'active' : ''}" data-quarter="Q3">Q3</button>
+        <button class="quarter-filter ${filterByQuarter === 'Q4' ? 'active' : ''}" data-quarter="Q4">Q4</button>
+        <button class="quarter-filter ${filterByQuarter === null ? 'active' : ''}" data-quarter="all">Alle</button>
+    </div>
         <div id="anlage-pruefung">
             ${anlageData.meldergruppen
                 .filter(gruppe => gruppe.meldepunkte.length > 0) // Nur Meldegruppen mit Meldepunkten anzeigen
@@ -347,14 +347,23 @@ async function showAnlagePruefung(anlageId) {
         showAnlagePruefung(anlageId); // Re-render with selected year
     });
 
-    // Event listeners for quarter buttons
-    document.querySelectorAll(".quarter-filter").forEach((button) => {
-        button.addEventListener("click", (e) => {
-            const quarter = e.target.getAttribute("data-quarter");
-            filterByQuarter = quarter === 'all' ? null : quarter;
-            showAnlagePruefung(anlageId); // Re-render with selected filter
+    // Event listeners für Quartalsfilter
+document.querySelectorAll(".quarter-filter").forEach((button) => {
+    button.addEventListener("click", (e) => {
+        const quarter = e.target.getAttribute("data-quarter");
+        filterByQuarter = quarter === 'all' ? null : quarter;
+
+        // Entferne die aktive Klasse von allen Buttons
+        document.querySelectorAll(".quarter-filter").forEach((btn) => {
+            btn.classList.remove("active");
         });
+
+        // Füge die aktive Klasse dem geklickten Button hinzu
+        e.target.classList.add("active");
+
+        showAnlagePruefung(anlageId); // Seite mit dem gewählten Filter neu rendern
     });
+});
 
     // Handle open filter toggle
     document.getElementById("filter-open").addEventListener("click", () => {
