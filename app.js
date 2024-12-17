@@ -501,22 +501,33 @@ function calculateProgress(meldergruppen) {
     return total > 0 ? ((checked / total) * 100).toFixed(2) : "0.00";
 }
 
-// Function to reset all Melderpunkte
+// Funktion zum Zurücksetzen der Meldepunkte für das gewählte Jahr
 async function resetMelderpunkte(anlageId, anlageData) {
     const updatedGruppen = anlageData.meldergruppen.map((gruppe) => ({
         ...gruppe,
         meldepunkte: gruppe.meldepunkte.map((melder) => ({
             ...melder,
-            geprüft: {},
-            quartal: null,
+            // Nur das gewählte Jahr zurücksetzen, nicht alle Jahre
+            geprüft: {
+                ...Object.fromEntries(
+                    Object.entries(melder.geprüft).filter(
+                        ([year]) => parseInt(year) !== selectedJahr
+                    )
+                ),
+            },
+            quartal: melder.quartal === selectedQuartal ? null : melder.quartal,
         })),
     }));
 
-    await setDoc(doc(db, "anlagen", anlageId), {
-        ...anlageData,
-        meldergruppen: updatedGruppen,
-    });
+    try {
+        await setDoc(doc(db, "anlagen", anlageId), {
+            ...anlageData,
+            meldergruppen: updatedGruppen,
+        });
 
-    alert("Alle Melderpunkte wurden zurückgesetzt.");
-    showAnlagePruefung(anlageId); // Reload the page after reset
+        alert(`Die Meldepunkte für das Jahr ${selectedJahr} wurden zurückgesetzt.`);
+        showAnlagePruefung(anlageId); // Seite nach dem Zurücksetzen neu laden
+    } catch (error) {
+        alert(`Fehler beim Zurücksetzen der Meldepunkte: ${error.message}`);
+    }
 }
