@@ -520,3 +520,25 @@ async function resetMelderpunkte(anlageId, anlageData) {
     alert("Alle Melderpunkte wurden zurückgesetzt.");
     showAnlagePruefung(anlageId); // Reload the page after reset
 }
+
+/ Warten, bis das Dokument geladen ist
+document.addEventListener('DOMContentLoaded', () => {
+    const scrollToTopButton = document.getElementById('scroll-to-top');
+
+    // Überwachen des Scroll-Verhaltens
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 200) { // Wenn mehr als 200px gescrollt wurde
+            scrollToTopButton.style.display = 'flex';
+        } else {
+            scrollToTopButton.style.display = 'none';
+        }
+    });
+
+    // Klick-Event für den Scroll-Button
+    scrollToTopButton.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth' // Sanftes Scrollen
+        });
+    });
+});

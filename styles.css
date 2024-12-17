@@ -145,6 +145,9 @@ footer {
     display: flex;
     align-items: center;
     justify-content: center;
+    display: none; /* Anfangszustand, verborgen */
+    font-size: 18px;
+    z-index: 1000;
 }
 
 footer:hover {
