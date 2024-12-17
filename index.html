@@ -34,5 +34,28 @@
 <div id="scrollButton" class="scroll-button">
     <button onclick="scrollToTop()">Nach oben</button>
 </div>
+<script>
+function scrollToTop() {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth' // Sanftes Scrollen
+    });
+}
+
+window.onscroll = function() {
+    let scrollButton = document.getElementById("scrollButton");
+
+    // Wenn der Benutzer mehr als 200px nach unten gescrollt hat, den Button anzeigen
+    if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+        scrollButton.style.display = "block";
+    } else {
+        scrollButton.style.display = "none";
+    }
+};
+
+if (window.location.pathname.includes('melderpruefseite')) {
+    document.getElementById("scrollButton").style.display = 'block';
+}
+</script>
 </body>
 </html>

@@ -520,28 +520,3 @@ async function resetMelderpunkte(anlageId, anlageData) {
     alert("Alle Melderpunkte wurden zurückgesetzt.");
     showAnlagePruefung(anlageId); // Reload the page after reset
 }
-
-// Funktion zum Scrollen nach oben
-function scrollToTop() {
-    window.scrollTo({
-        top: 0,
-        behavior: 'smooth' // Sanftes Scrollen
-    });
-}
-
-// Funktion, um den Scroll-Button je nach Scroll-Position ein- oder auszublenden
-window.onscroll = function() {
-    let scrollButton = document.getElementById("scrollButton");
-
-    // Wenn der Benutzer mehr als 200px nach unten gescrollt hat, den Button anzeigen
-    if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
-        scrollButton.style.display = "block";
-    } else {
-        scrollButton.style.display = "none";
-    }
-};
-
-// Stelle sicher, dass der Scroll-Button nur auf der Melderprüfseite angezeigt wird
-if (window.location.pathname.includes('melderpruefseite')) {
-    document.getElementById("scrollButton").style.display = 'block';
-}
