@@ -274,7 +274,6 @@ async function showCreatePage() {
 }
 
 // Function to display the Anlage Prüfung page
-// Function to display the Anlage Prüfung page
 async function showAnlagePruefung(anlageId) {
     const anlageDoc = await getDoc(doc(db, "anlagen", anlageId));
     if (!anlageDoc.exists()) {
@@ -287,11 +286,11 @@ async function showAnlagePruefung(anlageId) {
     // Dynamisch die letzten 5 Jahre (inkl. aktuelles Jahr) erstellen
     const currentYear = new Date().getFullYear();
     const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - i)
-        .map(year => `<option value="${year}" ${selectedJahr === year ? 'selected' : ''}>${year}</option>`)
+        .map(year => <option value="${year}" ${selectedJahr === year ? 'selected' : ''}>${year}</option>)
         .join('');
 
     // Render page with Quartal and Year selection and additional buttons
-    content.innerHTML = `
+    content.innerHTML = 
         <h2>Anlage: ${anlageData.name} (Anlagen-Nr: ${anlageData.id})</h2>
         <div>
             <label for="quartal-select">Wählen Sie das Prüf-Quartal:</label>
@@ -317,12 +316,20 @@ async function showAnlagePruefung(anlageId) {
         <button class="quarter-filter ${filterByQuarter === 'Q3' ? 'active' : ''}" data-quarter="Q3">Q3</button>
         <button class="quarter-filter ${filterByQuarter === 'Q4' ? 'active' : ''}" data-quarter="Q4">Q4</button>
         <button class="quarter-filter ${filterByQuarter === null ? 'active' : ''}" data-quarter="all">Alle</button>
-        </div>
+	<div style="margin-top:5px">
+	<label for="text-field-1">Akku Einbaudatum:</label>
+        	<input type="text" id="text-field-1" value="${anlageData.textField1 || ''}" />
+	</div>
+	<div style="margin-top:5px">
+	<label for="text-field-2">Besonderheiten:</label>
+        	<input style="width: 25%" "type="text" id="text-field-2" value="${anlageData.textField2 || ''}" />
+	</div>
+    </div>
         <div id="anlage-pruefung">
             ${anlageData.meldergruppen
                 .filter(gruppe => gruppe.meldepunkte.length > 0) // Nur Meldegruppen mit Meldepunkten anzeigen
                 .map(
-                    (gruppe) => ` 
+                    (gruppe) =>  
                 <div>
                     <h3>${gruppe.name} ${gruppe.zd ? "(ZD)" : ""} ${gruppe.sm ? "(SM)" : ""}</h3>
                     <div class="melder-container">
@@ -333,20 +340,37 @@ async function showAnlagePruefung(anlageId) {
                                     : true
                             )
                             .filter((melder) =>
-                                filterByQuarter ? melder.quartal === filterByQuarter && melder.geprüft[selectedJahr] : true
+                                filterByQuarter ? melder.quartal === filterByQuarter : true
                             )
                             .map(
-                                (melder) => ` 
+                                (melder) =>  
                             <span>
                                 ${melder.id}
                                 <input type="checkbox" class="melder-checkbox" data-group="${gruppe.name}" data-melder="${melder.id}" ${melder.geprüft[selectedJahr] ? 'checked' : ''}>
                             </span>
-                        `).join('') }
+                        ).join('') }
                     </div>
                 </div>
-            `).join('') }
+            ).join('') }
         </div>
-    `;
+    ;
+
+	// Event listener für die Änderungen der Textfelder
+    	document.getElementById("text-field-1").addEventListener("change", async (e) => {
+        const newValue = e.target.value;
+        await setDoc(doc(db, "anlagen", anlageId), {
+            ...anlageData,
+            textField1: newValue
+        }, { merge: true });
+    });
+
+    document.getElementById("text-field-2").addEventListener("change", async (e) => {
+        const newValue = e.target.value;
+        await setDoc(doc(db, "anlagen", anlageId), {
+            ...anlageData,
+            textField2: newValue
+        }, { merge: true });
+    });
 
     // Event listener for quartal selection
     document.getElementById("quartal-select").addEventListener("change", (e) => {
@@ -360,33 +384,33 @@ async function showAnlagePruefung(anlageId) {
     });
 
     // Event listeners für Quartalsfilter
-    document.querySelectorAll(".quarter-filter").forEach((button) => {
-        button.addEventListener("click", (e) => {
-            const quarter = e.target.getAttribute("data-quarter");
-            filterByQuarter = quarter === 'all' ? null : quarter;
+document.querySelectorAll(".quarter-filter").forEach((button) => {
+    button.addEventListener("click", (e) => {
+        const quarter = e.target.getAttribute("data-quarter");
+        filterByQuarter = quarter === 'all' ? null : quarter;
 
-            // Entferne die aktive Klasse von allen Buttons
-            document.querySelectorAll(".quarter-filter").forEach((btn) => {
-                btn.classList.remove("active");
-            });
-
-            // Füge die aktive Klasse dem geklickten Button hinzu
-            e.target.classList.add("active");
-
-            showAnlagePruefung(anlageId); // Seite mit dem gewählten Filter neu rendern
+        // Entferne die aktive Klasse von allen Buttons
+        document.querySelectorAll(".quarter-filter").forEach((btn) => {
+            btn.classList.remove("active");
         });
+
+        // Füge die aktive Klasse dem geklickten Button hinzu
+        e.target.classList.add("active");
+
+        showAnlagePruefung(anlageId); // Seite mit dem gewählten Filter neu rendern
     });
+});
 
     // Handle open filter toggle
-    document.getElementById("filter-open").addEventListener("click", () => {
-        showOnlyOpen = !showOnlyOpen;
+document.getElementById("filter-open").addEventListener("click", () => {
+    showOnlyOpen = !showOnlyOpen;
 
-        const filterOpenButton = document.getElementById("filter-open");
-        filterOpenButton.classList.toggle("active", showOnlyOpen); // Active-Klasse basierend auf Zustand
+    const filterOpenButton = document.getElementById("filter-open");
+    filterOpenButton.classList.toggle("active", showOnlyOpen); // Active-Klasse basierend auf Zustand
 
-        showAnlagePruefung(anlageId); // Re-render page
-    });
-}
+    showAnlagePruefung(anlageId); // Re-render page
+});
+
 
     // Handle reset melderpunkte button click
     document.getElementById("reset-melderpunkte").addEventListener("click", async () => {
