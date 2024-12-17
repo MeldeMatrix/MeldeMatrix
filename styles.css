@@ -65,7 +65,7 @@ section {
 }
 
 .quarter-filter.active {
-    background-color: #0078D4;
+    background-color: #ee0000;
     color: white;
     font-weight: bold;
     border: none;
@@ -73,16 +73,16 @@ section {
 }
 
 .quarter-filter {
-    margin: 0 5px;
+    margin: 2px 5px;
     padding: 5px 10px;
-    background-color: #ee0000;
+    background-color: #dddddd;
     border: 1px solid #ddd;
     border-radius: 5px;
     cursor: pointer;
 }
 
 .quarter-filter:hover {
-    background-color: #bf0808;
+    background-color: #bbbbbb;
 }
 
 footer {
