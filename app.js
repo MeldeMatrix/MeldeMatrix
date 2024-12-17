@@ -194,8 +194,10 @@ async function showCreatePage() {
         <h2>Neue Anlage Erstellen</h2>
         <input type="text" id="new-name" placeholder="Anlagenname">
         <input type="text" id="new-id" placeholder="Anlagen-Nr">
+	<div>
         <input type="text" id="new-text-field-1" placeholder="Zusätzliches Feld 1">
-        <input type="text" id="new-text-field-2" placeholder="Zusätzliches Feld 2">
+        <input type="text" id="new-text-field-2" placeholder="Akku Einbaudatum">
+	</div>
         <div id="meldergruppen-container">
             <div class="meldergruppe">
                 <h3>Meldegruppe 1</h3>
@@ -310,10 +312,14 @@ async function showAnlagePruefung(anlageId) {
         <button class="quarter-filter ${filterByQuarter === 'Q3' ? 'active' : ''}" data-quarter="Q3">Q3</button>
         <button class="quarter-filter ${filterByQuarter === 'Q4' ? 'active' : ''}" data-quarter="Q4">Q4</button>
         <button class="quarter-filter ${filterByQuarter === null ? 'active' : ''}" data-quarter="all">Alle</button>
+	<div>
 	<label for="text-field-1">Zusätzliches Feld 1:</label>
         	<input type="text" id="text-field-1" value="${anlageData.textField1 || ''}" />
-	<label for="text-field-2">Zusätzliches Feld 2:</label>
+	</div>
+	<div>
+	<label for="text-field-2">Akku Einbaudatum:</label>
         	<input type="text" id="text-field-2" value="${anlageData.textField2 || ''}" />
+	</div>
     </div>
         <div id="anlage-pruefung">
             ${anlageData.meldergruppen
