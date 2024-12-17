@@ -274,7 +274,7 @@ async function showCreatePage() {
         });
 
         try {
-            await setDoc(doc(db, "anlagen", id), { name, id, meldergruppen, textField1, textField2 });
+            await setDoc(doc(db, "anlagen", id), { name, id, meldergruppen, textField1, textField2, turnus });
             alert("Anlage erfolgreich erstellt!");
         } catch (error) {
             alert(`Fehler beim Erstellen der Anlage: ${error.message}`);
