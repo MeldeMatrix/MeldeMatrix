@@ -85,8 +85,7 @@ section {
     background-color: #bbbbbb;
 }
 
-
-btnOffenePunkte {
+#filter-open {
     margin: 2px 5px;
     padding: 5px 10px;
     background-color: #dddddd;
@@ -95,7 +94,11 @@ btnOffenePunkte {
     cursor: pointer;
 }
 
-
+#filter-open.active {
+    background-color: #ee0000;
+    color: white;
+    font-weight: bold;
+}
 
 footer {
     position: fixed;
