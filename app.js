@@ -334,14 +334,12 @@ async function showAnlagePruefung(anlageId) {
                     <h3>${gruppe.name} ${gruppe.zd ? "(ZD)" : ""} ${gruppe.sm ? "(SM)" : ""}</h3>
                     <div class="melder-container">
                         ${gruppe.meldepunkte
-                            .filter((melder) =>
-                                showOnlyOpen
-                                    ? !melder.geprüft[selectedJahr]
-                                    : true
-                            )
-                            .filter((melder) =>
-                                filterByQuarter ? melder.quartal === filterByQuarter : true
-                            )
+                            .filter((melder) => {
+                                // Filter nach dem ausgewählten Jahr und Quartal
+                                return (melder.geprüft[selectedJahr] || !showOnlyOpen) && 
+                                       (filterByQuarter ? melder.quartal === filterByQuarter : true) &&
+                                       melder.quartal !== null && melder.quartal.startsWith(selectedJahr.toString());
+                            })
                             .map(
                                 (melder) => ` 
                             <span>
