@@ -85,19 +85,13 @@ section {
     background-color: #bbbbbb;
 }
 
-#filter-open {
+#btn-class {
     margin: 2px 5px;
     padding: 5px 10px;
     background-color: #dddddd;
     border: 1px solid #ddd;
     border-radius: 5px;
     cursor: pointer;
-}
-
-#filter-open.active {
-    background-color: #ee0000;
-    color: white;
-    font-weight: bold;
 }
 
 footer {

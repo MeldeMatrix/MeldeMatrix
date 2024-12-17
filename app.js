@@ -295,11 +295,11 @@ async function showAnlagePruefung(anlageId) {
                 ${yearOptions}
             </select>
 
-            <button id="reset-melderpunkte">Alle Meldepunkte zurücksetzen</button>
+            <button id="reset-melderpunkte" class="btn-class">Alle Meldepunkte zurücksetzen</button>
         </div>
         <div id="quarter-buttons">
-        <label for="quarter-filter" class="filter-open">Ansichtsfilter:</label>
-        <button id="filter-open">${showOnlyOpen ? "Alle Punkte anzeigen" : "Nur offene Punkte anzeigen"}</button>
+        <label for="quarter-filter">Ansichtsfilter:</label>
+        <button id="filter-open" class="btn-class">${showOnlyOpen ? "Alle Punkte anzeigen" : "Nur offene Punkte anzeigen"}</button>
         <button class="quarter-filter ${filterByQuarter === 'Q1' ? 'active' : ''}" data-quarter="Q1">Q1</button>
         <button class="quarter-filter ${filterByQuarter === 'Q2' ? 'active' : ''}" data-quarter="Q2">Q2</button>
         <button class="quarter-filter ${filterByQuarter === 'Q3' ? 'active' : ''}" data-quarter="Q3">Q3</button>
