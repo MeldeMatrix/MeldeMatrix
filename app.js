@@ -312,8 +312,8 @@ async function showAnlagePruefung(anlageId) {
         `;
     } else if (anlageData.turnus === 'semi-annual') {
         quarterFilterHtml = `
-            <button class="quarter-filter ${filterByQuarter === 'Q1' ? 'active' : ''}" data-quarter="Q1">Q1</button>
-            <button class="quarter-filter ${filterByQuarter === 'Q2' ? 'active' : ''}" data-quarter="Q2">Q2</button>
+            <button class="quarter-filter ${filterByQuarter === 'Q1' ? 'active' : ''}" data-quarter="Q1">H1</button>
+            <button class="quarter-filter ${filterByQuarter === 'Q2' ? 'active' : ''}" data-quarter="Q2">H2</button>
         `;
     }
 
@@ -323,6 +323,7 @@ async function showAnlagePruefung(anlageId) {
     let quarterselectturnus = '';
     if (anlageData.turnus === 'quarterly') {
         quarterselectturnus = `
+	<label for="quartal-select">Wählen Sie das Prüf-Quartal:</label>
             <select id="quartal-select">
                 <option value="Q1" ${selectedQuartal === 'Q1' ? 'selected' : ''}>Q1</option>
                 <option value="Q2" ${selectedQuartal === 'Q2' ? 'selected' : ''}>Q2</option>
@@ -332,6 +333,7 @@ async function showAnlagePruefung(anlageId) {
         `;
     } else if (anlageData.turnus === 'semi-annual') {
         quarterselectturnus = `
+	<label for="quartal-select">Wählen Sie das Prüf-Halbjahr:</label>
             <select id="quartal-select">
                 <option value="Q1" ${selectedQuartal === 'Q1' ? 'selected' : ''}>H1</option>
                 <option value="Q2" ${selectedQuartal === 'Q2' ? 'selected' : ''}>H2</option>
@@ -344,11 +346,7 @@ async function showAnlagePruefung(anlageId) {
     // Render page with Quartal and Year selection and additional buttons
     content.innerHTML = `
         <h2>Anlage: ${anlageData.name} (Anlagen-Nr: ${anlageData.id})</h2>
-        
-
 	<div>
-            <label for="quartal-select">Wählen Sie das Prüf-Quartal:</label>
-            
 	${quarterselectturnus}
 
             <label for="year-select">Wählen Sie das Prüf-Jahr:</label>
