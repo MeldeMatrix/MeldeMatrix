@@ -382,15 +382,17 @@ async function showAnlagePruefung(anlageId) {
                     <div class="melder-container">
                         ${gruppe.meldepunkte
                             .filter((melder) => {
-                                // Filter auf Jahr und Quartal anwenden
-                                if (filterByQuarter && filterByQuarter !== 'all') {
-                                    return (
-                                        melder.quartal === filterByQuarter &&
-                                        melder.geprüft.hasOwnProperty(selectedJahr) // Nur prüfen, wenn im ausgewählten Jahr geprüft wurde
-                                    );
-                                }
-                                return true; // Ohne Quartalsfilter alle anzeigen
-                            })
+    // Filter auf Jahr und Quartal anwenden
+    if (filterByQuarter && filterByQuarter !== 'all') {
+        // Hier prüfen wir, ob das Quartal im 'geprüft' Feld für das ausgewählte Jahr existiert
+        return (
+            melder.geprüft.hasOwnProperty(selectedJahr) && 
+            melder.geprüft[selectedJahr] === filterByQuarter // Nur wenn das Quartal im geprüften Jahr vorhanden ist
+        );
+    }
+    return true; // Ohne Quartalsfilter alle anzeigen
+})
+
                             .filter((melder) => {
                                 // "Nur offene" Filter anwenden
                                 if (showOnlyOpen) {
