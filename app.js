@@ -541,10 +541,11 @@ document.querySelectorAll(".melder-checkbox").forEach((checkbox) => {
         // Lokales Update der Prüfungsdaten für den Melder
         const updatedGeprueft = { ...melder.geprüft }; // Kopie der bestehenden Prüfungen
 
+	// Für jährliche Anlagen speichern wir die Prüfung ohne Quartal
         if (anlageData.turnus === 'annual') {
-            // Für jährliche Anlagen speichern wir die Prüfung ohne Quartal
-            updatedGeprueft[selectedJahr] = 'Jährlich';  // Das Jahr als Wert für die Prüfung
-        } else {
+	updatedGeprueft[selectedJahr] = 'Jährlich';  // Das Jahr als Wert für die Prüfung
+        
+	} else {
             // Für andere Turnusse (Quartal, Halbjahr) speichern wir auch das Quartal
             if (checked) {
                 updatedGeprueft[selectedJahr] = selectedQuartal; // Das Quartal wird gesetzt
