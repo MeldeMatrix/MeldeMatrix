@@ -356,7 +356,17 @@ async function showAnlagePruefung(anlageId) {
             </select>
         `;
     } else {
-        // Jährlich: Keine Quartalswahl erforderlich
+        
+	if (currentMonth >= 0 && currentMonth < 3) {
+            selectedQuartal = 'Q1';
+        } else if (currentMonth >= 3 && currentMonth < 6) {
+            selectedQuartal = 'Q2';
+        } else if (currentMonth >= 6 && currentMonth < 9) {
+            selectedQuartal = 'Q3';
+        } else {
+            selectedQuartal = 'Q4';
+        }
+
         quarterselectturnus = '';
     }
 
