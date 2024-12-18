@@ -296,12 +296,17 @@ async function showAnlagePruefung(anlageId) {
     currentAnlageId = anlageId;
 
     const anlageDoc = await getDoc(doc(db, "anlagen", anlageId));
-    if (!anlageDoc.exists()) {
-        alert("Anlage nicht gefunden!");
-        return;
-    }
+if (!anlageDoc.exists()) {
+    alert("Anlage nicht gefunden!");
+    return;
+}
 
-    const anlageData = anlageDoc.data();
+const anlageData = anlageDoc.data();
+
+// Übernehmen der gespeicherten Quartalsauswahl
+if (anlageData.selectedQuartal) {
+    selectedQuartal = anlageData.selectedQuartal;
+}
 
     // Dynamisch die letzten 5 Jahre (inkl. aktuelles Jahr) erstellen
     const currentYear = new Date().getFullYear();
@@ -389,7 +394,7 @@ async function showAnlagePruefung(anlageId) {
                                 if (filterByQuarter && filterByQuarter !== 'all') {
                                     return (
                                         melder.quartal === filterByQuarter &&
-                                        melder.geprüft.hasOwnProperty(selectedJahr) // Nur prüfen, wenn im ausgewählten Jahr geprüft wurde
+                                        melder.geprüft[selectedJahr] && melder.geprüft[selectedJahr][selectedQuartal] // Nur prüfen, wenn im ausgewählten Jahr geprüft wurde
                                     );
                                 }
                                 return true; // Ohne Quartalsfilter alle anzeigen
@@ -432,9 +437,18 @@ async function showAnlagePruefung(anlageId) {
     });
 
     // Event listener for quartal selection
-    document.getElementById("quartal-select").addEventListener("change", (e) => {
-        selectedQuartal = e.target.value;
-    });
+    document.getElementById("quartal-select").addEventListener("change", async (e) => {
+    selectedQuartal = e.target.value;
+
+    // Speichere das ausgewählte Quartal in der Datenbank
+    await setDoc(doc(db, "anlagen", currentAnlageId), {
+        selectedQuartal
+    }, { merge: true });
+
+    //Seite neu laden, um sicherzustellen, dass die Auswahl direkt sichtbar wird
+    showAnlagePruefung(currentAnlageId);
+});
+
 
     // Event listener for year selection
     document.getElementById("year-select").addEventListener("change", (e) => {
@@ -478,40 +492,43 @@ async function showAnlagePruefung(anlageId) {
     // Handle melder checkbox toggling
     document.querySelectorAll(".melder-checkbox").forEach((checkbox) => {
         checkbox.addEventListener("change", async (e) => {
-            const groupName = e.target.getAttribute("data-group");
-            const melderId = parseInt(e.target.getAttribute("data-melder"), 10);
-            const isChecked = e.target.checked;
+    const groupName = e.target.getAttribute("data-group");
+    const melderId = parseInt(e.target.getAttribute("data-melder"), 10);
+    const isChecked = e.target.checked;
 
-            // Update checked status for the selected year and quarter
-            await setDoc(doc(db, "anlagen", anlageId), {
-                ...anlageData,
-                meldergruppen: anlageData.meldergruppen.map((gruppe) => {
-                    if (gruppe.name === groupName) {
-                        return {
-                            ...gruppe,
-                            meldepunkte: gruppe.meldepunkte.map((melder) => {
-                                if (melder.id === melderId) {
-                                    return {
-                                        ...melder,
-                                        geprüft: {
-                                            ...melder.geprüft,
-                                            [selectedJahr]: {
-                                                ...melder.geprüft[selectedJahr],
-                                                [selectedQuartal]: isChecked
-                                            }
-                                        }
-                                    };
+    // Update checked status für das ausgewählte Jahr und Quartal
+    await setDoc(doc(db, "anlagen", anlageId), {
+        ...anlageData,
+        meldergruppen: anlageData.meldergruppen.map((gruppe) => {
+            if (gruppe.name === groupName) {
+                return {
+                    ...gruppe,
+                    meldepunkte: gruppe.meldepunkte.map((melder) => {
+                        if (melder.id === melderId) {
+                            return {
+                                ...melder,
+                                geprüft: {
+                                    ...melder.geprüft,
+                                    [selectedJahr]: {
+                                        ...melder.geprüft[selectedJahr],
+                                        [selectedQuartal]: isChecked // Quartalsspezifisch speichern
+                                    }
                                 }
-                                return melder;
-                            })
-                        };
-                    }
-                    return gruppe;
-                })
-            }, { merge: true });
-        });
+                            };
+                        }
+                        return melder;
+                    })
+                };
+            }
+            return gruppe;
+        })
+    }, { merge: true });
+});
     });
 }
+
+
+
 
 // Helper function to calculate progress for the current year
 function calculateProgress(meldergruppen) {
