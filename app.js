@@ -473,7 +473,7 @@ document.getElementById("filter-open").addEventListener("click", () => {
         await resetMelderpunkte(anlageId, anlageData);
     });
 
-   // Handle melder checkbox toggling
+ // Handle melder checkbox toggling
 document.querySelectorAll(".melder-checkbox").forEach((checkbox) => {
     checkbox.addEventListener("change", async (e) => {
         const groupName = e.target.getAttribute("data-group");
@@ -485,6 +485,7 @@ document.querySelectorAll(".melder-checkbox").forEach((checkbox) => {
             return;
         }
 
+        // Update melder data with specific year and quarter
         const updatedGruppen = anlageData.meldergruppen.map((gruppe) => {
             if (gruppe.name === groupName) {
                 return {
@@ -493,14 +494,11 @@ document.querySelectorAll(".melder-checkbox").forEach((checkbox) => {
                         if (melder.id === melderId) {
                             return {
                                 ...melder,
-                                geprüft: checked
-                                    ? { ...melder.geprüft, [selectedJahr]: true }
-                                    : Object.fromEntries(
-                                        Object.entries(melder.geprüft).filter(
-                                            ([year]) => parseInt(year) !== selectedJahr
-                                        )
-                                    ),
-                                quartal: checked ? selectedQuartal : null,
+                                geprüft: {
+                                    ...melder.geprüft,
+                                    [selectedJahr]: checked, // Spezifischer Prüfstatus für das Jahr
+                                },
+                                quartal: checked ? { ...melder.quartal, [selectedJahr]: selectedQuartal } : {}, // Quartal speichern oder löschen
                             };
                         }
                         return melder;
@@ -511,15 +509,15 @@ document.querySelectorAll(".melder-checkbox").forEach((checkbox) => {
         });
 
         try {
+            // Save updated data to Firestore
             await setDoc(doc(db, "anlagen", anlageId), {
                 ...anlageData,
                 meldergruppen: updatedGruppen,
             });
-
-            anlageData.meldergruppen = updatedGruppen;
-            showAnlagePruefung(anlageId); // Re-render after update
+            console.log("Prüfstatus erfolgreich aktualisiert!");
         } catch (error) {
-            alert(`Fehler beim Speichern der Änderungen: ${error.message}`);
+            console.error("Fehler beim Aktualisieren des Prüfstatus:", error);
+            alert(`Fehler: ${error.message}`);
         }
     });
 });
