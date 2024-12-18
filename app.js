@@ -357,6 +357,7 @@ async function showAnlagePruefung(anlageId) {
         `;
     } else {
         
+	const currentMonth = new Date().getMonth(); // Monat ist von 0 (Januar) bis 11 (Dezember)
 	if (currentMonth >= 0 && currentMonth < 3) {
             selectedQuartal = 'Q1';
         } else if (currentMonth >= 3 && currentMonth < 6) {
