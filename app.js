@@ -319,11 +319,23 @@ async function showAnlagePruefung(anlageId) {
 
     // For annual, no quarter filter is needed
 
-// Based on Turnus (quarterly, semi-annual, annual), adjust the quarter select
+// Logik für die Quartalsauswahl basierend auf dem Turnus
     let quarterselectturnus = '';
     if (anlageData.turnus === 'quarterly') {
+        // Standardmäßig das aktuelle Quartal setzen
+        const currentMonth = new Date().getMonth(); // Monat ist von 0 (Januar) bis 11 (Dezember)
+        if (currentMonth >= 0 && currentMonth < 3) {
+            selectedQuartal = 'Q1';
+        } else if (currentMonth >= 3 && currentMonth < 6) {
+            selectedQuartal = 'Q2';
+        } else if (currentMonth >= 6 && currentMonth < 9) {
+            selectedQuartal = 'Q3';
+        } else {
+            selectedQuartal = 'Q4';
+        }
+
         quarterselectturnus = `
-	<label for="quartal-select">Wählen Sie das Prüf-Quartal:</label>
+            <label for="quartal-select">Wählen Sie das Prüf-Quartal:</label>
             <select id="quartal-select">
                 <option value="Q1" ${selectedQuartal === 'Q1' ? 'selected' : ''}>Q1</option>
                 <option value="Q2" ${selectedQuartal === 'Q2' ? 'selected' : ''}>Q2</option>
@@ -332,15 +344,21 @@ async function showAnlagePruefung(anlageId) {
             </select>
         `;
     } else if (anlageData.turnus === 'semi-annual') {
+        // Halbjährlich: Standard auf H1 oder H2 je nach aktuellem Monat setzen
+        const currentMonth = new Date().getMonth(); // Monat ist von 0 (Januar) bis 11 (Dezember)
+        selectedQuartal = currentMonth < 6 ? 'Q1' : 'Q2';  // H1: Januar bis Juni, H2: Juli bis Dezember
+
         quarterselectturnus = `
-	<label for="quartal-select">Wählen Sie das Prüf-Halbjahr:</label>
+            <label for="quartal-select">Wählen Sie das Prüf-Halbjahr:</label>
             <select id="quartal-select">
                 <option value="Q1" ${selectedQuartal === 'Q1' ? 'selected' : ''}>H1</option>
                 <option value="Q2" ${selectedQuartal === 'Q2' ? 'selected' : ''}>H2</option>
             </select>
         `;
+    } else {
+        // Jährlich: Keine Quartalswahl erforderlich
+        quarterselectturnus = '';
     }
-
 
 
     // Render page with Quartal and Year selection and additional buttons
@@ -382,7 +400,8 @@ async function showAnlagePruefung(anlageId) {
                     <div class="melder-container">
                         ${gruppe.meldepunkte
                             .filter((melder) => {
-    // Filter auf Jahr und Quartal anwenden
+  
+  // Filter auf Jahr und Quartal anwenden
     if (filterByQuarter && filterByQuarter !== 'all') {
         // Hier prüfen wir, ob das Quartal im 'geprüft' Feld für das ausgewählte Jahr existiert
         return (
