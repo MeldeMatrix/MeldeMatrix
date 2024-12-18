@@ -486,40 +486,38 @@ document.querySelectorAll(".melder-checkbox").forEach((checkbox) => {
             return;
         }
 
-        // Aktualisieren der Meldergruppen mit Beibehaltung früherer Prüfungen
-        const updatedGruppen = anlageData.meldergruppen.map((gruppe) => {
-            if (gruppe.name === groupName) {
-                return {
-                    ...gruppe,
-                    meldepunkte: gruppe.meldepunkte.map((melder) => {
-                        if (melder.id === melderId) {
-                            const updatedGeprueft = { ...melder.geprüft }; // Kopie der bisherigen Prüfungen
+        // Lokale Kopie der aktuellen Daten für die Gruppe
+        const gruppe = anlageData.meldergruppen.find(g => g.name === groupName);
+        if (!gruppe) {
+            console.error(`Gruppe ${groupName} nicht gefunden.`);
+            return;
+        }
 
-                            if (checked) {
-                                updatedGeprueft[selectedJahr] = selectedQuartal; // Quartal des aktuellen Jahres setzen
-                            } else {
-                                delete updatedGeprueft[selectedJahr]; // Eintrag für das aktuelle Jahr entfernen, falls nicht geprüft
-                            }
+        // Finden des betreffenden Melders
+        const melder = gruppe.meldepunkte.find(m => m.id === melderId);
+        if (!melder) {
+            console.error(`Melder mit ID ${melderId} nicht gefunden.`);
+            return;
+        }
 
-                            return {
-                                ...melder,
-                                geprüft: updatedGeprueft, // Aktualisierte Prüfungsdaten übernehmen
-                            };
-                        }
-                        return melder;
-                    }),
-                };
-            }
-            return gruppe;
-        });
+        // Lokales Update der Prüfungsdaten für den Melder
+        const updatedGeprueft = { ...melder.geprüft }; // Kopie der bestehenden Prüfungen
+
+        if (checked) {
+            updatedGeprueft[selectedJahr] = selectedQuartal; // Aktuelles Quartal setzen
+        } else {
+            delete updatedGeprueft[selectedJahr]; // Aktuelles Jahr entfernen, falls deaktiviert
+        }
+
+        melder.geprüft = updatedGeprueft; // Prüfungen des Melders aktualisieren
 
         try {
-            // Aktualisierte Daten in der Datenbank speichern
+            // Nur die geänderte Gruppe synchronisieren
             await setDoc(doc(db, "anlagen", anlageId), {
-                ...anlageData,
-                meldergruppen: updatedGruppen,
-            });
-            console.log("Meldepunkt erfolgreich aktualisiert.");
+                meldergruppen: anlageData.meldergruppen, // Aktualisierte Gruppen
+            }, { merge: true }); // Nur die geänderten Felder speichern
+
+            console.log(`Meldepunkt ${melderId} in Gruppe ${groupName} erfolgreich aktualisiert.`);
         } catch (error) {
             console.error("Fehler beim Speichern:", error);
             alert("Fehler beim Aktualisieren des Meldepunktes.");
