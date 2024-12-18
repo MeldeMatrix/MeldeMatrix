@@ -482,23 +482,28 @@ document.querySelectorAll(".melder-checkbox").forEach((checkbox) => {
 
         if (!selectedQuartal) {
             alert("Bitte wählen Sie zuerst das Quartal aus!");
+            e.target.checked = !checked; // Rückgängig machen, falls kein Quartal ausgewählt ist
             return;
         }
 
-        // Update melder data with specific year and quarter
+        // Aktualisieren der Meldergruppen mit Beibehaltung früherer Prüfungen
         const updatedGruppen = anlageData.meldergruppen.map((gruppe) => {
             if (gruppe.name === groupName) {
                 return {
                     ...gruppe,
                     meldepunkte: gruppe.meldepunkte.map((melder) => {
                         if (melder.id === melderId) {
+                            const updatedGeprueft = { ...melder.geprüft }; // Kopie der bisherigen Prüfungen
+
+                            if (checked) {
+                                updatedGeprueft[selectedJahr] = selectedQuartal; // Quartal des aktuellen Jahres setzen
+                            } else {
+                                delete updatedGeprueft[selectedJahr]; // Eintrag für das aktuelle Jahr entfernen, falls nicht geprüft
+                            }
+
                             return {
                                 ...melder,
-                                geprüft: {
-                                    ...melder.geprüft,
-                                    [selectedJahr]: checked, // Spezifischer Prüfstatus für das Jahr
-                                },
-                                quartal: checked ? { ...melder.quartal, [selectedJahr]: selectedQuartal } : {}, // Quartal speichern oder löschen
+                                geprüft: updatedGeprueft, // Aktualisierte Prüfungsdaten übernehmen
                             };
                         }
                         return melder;
@@ -509,15 +514,15 @@ document.querySelectorAll(".melder-checkbox").forEach((checkbox) => {
         });
 
         try {
-            // Save updated data to Firestore
+            // Aktualisierte Daten in der Datenbank speichern
             await setDoc(doc(db, "anlagen", anlageId), {
                 ...anlageData,
                 meldergruppen: updatedGruppen,
             });
-            console.log("Prüfstatus erfolgreich aktualisiert!");
+            console.log("Meldepunkt erfolgreich aktualisiert.");
         } catch (error) {
-            console.error("Fehler beim Aktualisieren des Prüfstatus:", error);
-            alert(`Fehler: ${error.message}`);
+            console.error("Fehler beim Speichern:", error);
+            alert("Fehler beim Aktualisieren des Meldepunktes.");
         }
     });
 });
