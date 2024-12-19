@@ -410,7 +410,6 @@ async function showAnlagePruefung(anlageId) {
 	</div>
 
         <div id="additional-points" class="additional-points-container">
-            <h3>Zusätzliche Punkte</h3>
             ${['Alarmierung', 'Steuerung', 'Erdschluss', 'Kurzschluss', 'Drahtbruch', 'FSD Heizung'].map(point => `
                 <div class="additional-point">
                     <label>${point}</label>
