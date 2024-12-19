@@ -194,15 +194,15 @@ async function showCreatePage() {
         <h2>Neue Anlage Erstellen</h2>
         <input type="text" id="new-name" placeholder="Anlagenname">
         <input type="text" id="new-id" placeholder="Anlagen-Nr">
-	<div style="margin-top:5px">
-	<a>Akku Einbaudatum: </a>
-        <input type="text" id="new-text-field-1" placeholder="YY/JJJJ">
-	</div>
-	<div style="margin-top:5px">
-	<a>Besonderheiten: </a>
-        <input type="text" id="new-text-field-2">
-	</div>
-	<div>
+        <div style="margin-top:5px">
+            <a>Akku Einbaudatum: </a>
+            <input type="text" id="new-text-field-1" placeholder="YY/JJJJ">
+        </div>
+        <div style="margin-top:5px">
+            <a>Besonderheiten: </a>
+            <input type="text" id="new-text-field-2">
+        </div>
+        <div>
             <label for="turnus-select">Wählen Sie den Turnus:</label>
             <select id="turnus-select">
                 <option value="quarterly">Vierteljährlich</option>
@@ -216,14 +216,14 @@ async function showCreatePage() {
                 <input type="number" class="melder-count" placeholder="Anzahl Melder" value="1">
                 <label for="zd">ZD</label>
                 <input type="checkbox" class="zd-checkbox">
-                <label for="sm">SM</label>
-                <input type="checkbox" class="sm-checkbox">
-                <label for="hm">HM</label>
-                <input type="checkbox" class="hm-checkbox">
-                <label for="rm">RM</label>
-                <input type="checkbox" class="rm-checkbox">
-                <label for="wm">WM</label>
-                <input type="checkbox" class="wm-checkbox">
+                <label for="type">Typ</label>
+                <select class="type-select">
+                    <option value="none">None</option>
+                    <option value="sm">SM</option>
+                    <option value="hm">HM</option>
+                    <option value="rm">RM</option>
+                    <option value="wm">WM</option>
+                </select>
             </div>
         </div>
         <br>
@@ -244,14 +244,14 @@ async function showCreatePage() {
             <input type="number" class="melder-count" placeholder="Anzahl Melder" value="1">
             <label for="zd">ZD</label>
             <input type="checkbox" class="zd-checkbox">
-            <label for="sm">SM</label>
-            <input type="checkbox" class="sm-checkbox">
-            <label for="hm">HM</label>
-            <input type="checkbox" class="hm-checkbox">
-            <label for="rm">RM</label>
-            <input type="checkbox" class="rm-checkbox">
-            <label for="wm">WM</label>
-            <input type="checkbox" class="wm-checkbox">
+            <label for="type">Typ</label>
+            <select class="type-select">
+                <option value="none">None</option>
+                <option value="sm">SM</option>
+                <option value="hm">HM</option>
+                <option value="rm">RM</option>
+                <option value="wm">WM</option>
+            </select>
         `;
         meldergruppenContainer.appendChild(newGroup);
     });
@@ -262,17 +262,14 @@ async function showCreatePage() {
         const id = document.getElementById("new-id").value;
         const textField1 = document.getElementById("new-text-field-1").value;  // Neues Textfeld 1
         const textField2 = document.getElementById("new-text-field-2").value;  // Neues Textfeld 2
-	const turnus = document.getElementById("turnus-select").value;  // Get the selected Turnus
+        const turnus = document.getElementById("turnus-select").value;  // Get the selected Turnus
 
         // Collect all Meldegruppen data
         const meldergruppen = [];
         document.querySelectorAll(".meldergruppe").forEach((groupElement, index) => {
             const melderCount = parseInt(groupElement.querySelector(".melder-count").value, 10);
             const zdChecked = groupElement.querySelector(".zd-checkbox").checked;
-            const smChecked = groupElement.querySelector(".sm-checkbox").checked;
-            const hmChecked = groupElement.querySelector(".hm-checkbox").checked;
-            const rmChecked = groupElement.querySelector(".rm-checkbox").checked;
-            const wmChecked = groupElement.querySelector(".wm-checkbox").checked;
+            const typeValue = groupElement.querySelector(".type-select").value;
             
             const meldepunkte = Array.from({ length: melderCount }, (_, i) => ({
                 id: i + 1,
@@ -284,10 +281,7 @@ async function showCreatePage() {
                 name: `MG${index + 1}`,
                 meldepunkte: meldepunkte,
                 zd: zdChecked,
-                sm: smChecked,
-                hm: hmChecked,
-                rm: rmChecked,
-                wm: wmChecked,
+                type: typeValue,
             });
         });
 
@@ -299,8 +293,6 @@ async function showCreatePage() {
         }
     });
 }
-
-
 
 // Function to display the Anlage Prüfung page
 async function showAnlagePruefung(anlageId) {
