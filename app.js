@@ -454,7 +454,7 @@ async function showAnlagePruefung(anlageId) {
             <h3>Zusätzliche Punkte</h3>
             ${['Alarmierung', 'Steuerung', 'Erdschluss', 'Kurzschluss', 'Drahtbruch', 'FSD Heizung'].map(point => `
                 <div>
-                    <h4>${point}</h4>
+                    <h4>${point}
                     ${anlageData.turnus === 'quarterly' ? `
                         <label>Q1</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="Q1" ${anlageData.additionalPoints?.[point]?.[selectedJahr]?.includes('Q1') ? 'checked' : ''}>
                         <label>Q2</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="Q2" ${anlageData.additionalPoints?.[point]?.[selectedJahr]?.includes('Q2') ? 'checked' : ''}>
@@ -466,6 +466,7 @@ async function showAnlagePruefung(anlageId) {
                     ` : `
                         <label>Jährlich</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="annual" ${anlageData.additionalPoints?.[point]?.[selectedJahr]?.includes('annual') ? 'checked' : ''}>
                     `}
+                    </h4>
                 </div>
             `).join('')}
         </div>
