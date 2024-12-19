@@ -512,13 +512,13 @@ document.querySelectorAll(".melder-checkbox").forEach((checkbox) => {
         const melderId = parseInt(e.target.getAttribute("data-melder"), 10);
         const checked = e.target.checked;
 
-        if (!selectedQuartal) {
+        if (!selectedQuartal && anlageData.turnus !== 'annual') {
             alert("Bitte wählen Sie zuerst das Quartal aus!");
             e.target.checked = !checked; // Rückgängig machen, falls kein Quartal ausgewählt ist
             return;
         }
 
-	 if (!selectedJahr) {
+        if (!selectedJahr) {
             alert("Bitte wählen Sie zuerst das Jahr aus!");
             e.target.checked = !checked; // Rückgängig machen, falls kein Jahr ausgewählt ist
             return;
@@ -541,11 +541,14 @@ document.querySelectorAll(".melder-checkbox").forEach((checkbox) => {
         // Lokales Update der Prüfungsdaten für den Melder
         const updatedGeprueft = { ...melder.geprüft }; // Kopie der bestehenden Prüfungen
 
-	// Für jährliche Anlagen speichern wir die Prüfung ohne Quartal
+        // Für jährliche Anlagen speichern wir die Prüfung ohne Quartal
         if (anlageData.turnus === 'annual') {
-	updatedGeprueft[selectedJahr] = 'Jährlich';  // Das Jahr als Wert für die Prüfung
-        
-	} else {
+            if (checked) {
+                updatedGeprueft[selectedJahr] = 'Jährlich';  // Das Jahr als Wert für die Prüfung
+            } else {
+                delete updatedGeprueft[selectedJahr]; // Falls die Checkbox deaktiviert wird, entfernen wir das Jahr
+            }
+        } else {
             // Für andere Turnusse (Quartal, Halbjahr) speichern wir auch das Quartal
             if (checked) {
                 updatedGeprueft[selectedJahr] = selectedQuartal; // Das Quartal wird gesetzt
