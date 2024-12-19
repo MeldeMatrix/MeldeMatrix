@@ -186,6 +186,7 @@ footer:hover {
 }
 
 .additional-point label {
+    flex: 1;
     margin-right: 10px;
 }
 
