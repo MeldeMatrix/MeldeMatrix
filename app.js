@@ -461,9 +461,12 @@ async function showAnlagePruefung(anlageId) {
     });
 
     // Event listener for quartal selection
-    document.getElementById("quartal-select").addEventListener("change", (e) => {
-        selectedQuartal = e.target.value;
-    });
+    const quartalSelect = document.getElementById("quartal-select");
+    if (quartalSelect) {
+        quartalSelect.addEventListener("change", (e) => {
+            selectedQuartal = e.target.value;
+        });
+    }
 
     // Event listener for year selection
     document.getElementById("year-select").addEventListener("change", (e) => {
