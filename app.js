@@ -217,12 +217,11 @@ async function showCreatePage() {
                 <label for="zd">ZD</label>
                 <input type="checkbox" class="zd-checkbox">
                 <label for="type">Typ</label>
-                <select class="type-select">
-                    <option value="none">None</option>
-                    <option value="sm">SM</option>
-                    <option value="hm">HM</option>
+                <select class="type-select btn-class">
                     <option value="rm">RM</option>
+                    <option value="hm">HM</option>
                     <option value="wm">WM</option>
+                    <option value="sm">SM</option>
                 </select>
             </div>
         </div>
@@ -246,11 +245,10 @@ async function showCreatePage() {
             <input type="checkbox" class="zd-checkbox">
             <label for="type">Typ</label>
             <select class="type-select">
-                <option value="none">None</option>
-                <option value="sm">SM</option>
-                <option value="hm">HM</option>
                 <option value="rm">RM</option>
+                <option value="hm">HM</option>
                 <option value="wm">WM</option>
+                <option value="sm">SM</option>
             </select>
         `;
         meldergruppenContainer.appendChild(newGroup);
