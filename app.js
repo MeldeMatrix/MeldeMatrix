@@ -217,7 +217,7 @@ async function showCreatePage() {
                 <label for="zd">ZD</label>
                 <input type="checkbox" class="zd-checkbox">
                 <label for="type">Typ</label>
-                <select class="type-select btn-class">
+                <select class="type-select">
                     <option value="rm">RM</option>
                     <option value="hm">HM</option>
                     <option value="wm">WM</option>
@@ -415,7 +415,7 @@ async function showAnlagePruefung(anlageId) {
                 .map(
                     (gruppe) => ` 
                 <div>
-                    <h3>${gruppe.name} ${gruppe.zd ? "(ZD)" : ""} ${gruppe.sm ? "(SM)" : ""}</h3>
+                    <h3>${gruppe.name} (${gruppe.type}) ${gruppe.zd ? "(ZD)" : ""}</h3>
                     <div class="melder-container">
                         ${gruppe.meldepunkte
                             .filter((melder) => {
