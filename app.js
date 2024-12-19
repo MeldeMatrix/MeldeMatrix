@@ -455,15 +455,15 @@ async function showAnlagePruefung(anlageId) {
                 <div>
                     <h4>${point}</h4>
                     ${anlageData.turnus === 'quarterly' ? `
-                        <label>Q1</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="Q1">
-                        <label>Q2</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="Q2">
-                        <label>Q3</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="Q3">
-                        <label>Q4</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="Q4">
+                        <label>Q1</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="Q1" ${anlageData.additionalPoints?.[point]?.[selectedJahr]?.includes('Q1') ? 'checked' : ''}>
+                        <label>Q2</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="Q2" ${anlageData.additionalPoints?.[point]?.[selectedJahr]?.includes('Q2') ? 'checked' : ''}>
+                        <label>Q3</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="Q3" ${anlageData.additionalPoints?.[point]?.[selectedJahr]?.includes('Q3') ? 'checked' : ''}>
+                        <label>Q4</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="Q4" ${anlageData.additionalPoints?.[point]?.[selectedJahr]?.includes('Q4') ? 'checked' : ''}>
                     ` : anlageData.turnus === 'semi-annual' ? `
-                        <label>H1</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="Q1">
-                        <label>H2</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="Q2">
+                        <label>H1</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="Q1" ${anlageData.additionalPoints?.[point]?.[selectedJahr]?.includes('Q1') ? 'checked' : ''}>
+                        <label>H2</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="Q2" ${anlageData.additionalPoints?.[point]?.[selectedJahr]?.includes('Q2') ? 'checked' : ''}>
                     ` : `
-                        <label>Jährlich</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="annual">
+                        <label>Jährlich</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="annual" ${anlageData.additionalPoints?.[point]?.[selectedJahr]?.includes('annual') ? 'checked' : ''}>
                     `}
                 </div>
             `).join('')}
@@ -630,10 +630,14 @@ document.querySelectorAll(".melder-checkbox").forEach((checkbox) => {
                 updatedPoints[point] = {};
             }
 
+            if (!updatedPoints[point][selectedJahr]) {
+                updatedPoints[point][selectedJahr] = [];
+            }
+
             if (checked) {
-                updatedPoints[point][selectedJahr] = quarter; // Das Quartal wird gesetzt
+                updatedPoints[point][selectedJahr].push(quarter); // Das Quartal wird gesetzt
             } else {
-                delete updatedPoints[point][selectedJahr]; // Falls die Checkbox deaktiviert wird, entfernen wir das Quartal
+                updatedPoints[point][selectedJahr] = updatedPoints[point][selectedJahr].filter(q => q !== quarter); // Falls die Checkbox deaktiviert wird, entfernen wir das Quartal
             }
 
             anlageData.additionalPoints = updatedPoints; // Prüfungen des Punktes aktualisieren
