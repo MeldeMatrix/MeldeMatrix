@@ -178,6 +178,7 @@ footer:hover {
 .additional-points-container {
     display: inline-flex;
     flex-direction: column;
+    margin-top: 15px;
 }
 
 .additional-point {
@@ -196,5 +197,9 @@ footer:hover {
 }
 
 .checkbox-group label {
+    margin-right: 5px;
+}
+
+.checkbox-group input {
     margin-right: 5px;
 }
