@@ -175,6 +175,11 @@ footer:hover {
     background-color: #ee0000;
 }
 
+.additional-points-container {
+    display: flex;
+    flex-direction: column;
+}
+
 .additional-point {
     display: flex;
     align-items: center;
@@ -184,6 +189,11 @@ footer:hover {
     margin-right: 10px;
 }
 
-.additional-point input[type="checkbox"] {
-    margin-left: 5px;
+.additional-point .checkbox-group {
+    display: flex;
+    align-items: center;
+}
+
+.checkbox-group label {
+    margin-right: 5px;
 }
