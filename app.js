@@ -218,6 +218,12 @@ async function showCreatePage() {
                 <input type="checkbox" class="zd-checkbox">
                 <label for="sm">SM</label>
                 <input type="checkbox" class="sm-checkbox">
+                <label for="hm">HM</label>
+                <input type="checkbox" class="hm-checkbox">
+                <label for="rm">RM</label>
+                <input type="checkbox" class="rm-checkbox">
+                <label for="wm">WM</label>
+                <input type="checkbox" class="wm-checkbox">
             </div>
         </div>
         <br>
@@ -240,6 +246,12 @@ async function showCreatePage() {
             <input type="checkbox" class="zd-checkbox">
             <label for="sm">SM</label>
             <input type="checkbox" class="sm-checkbox">
+            <label for="hm">HM</label>
+            <input type="checkbox" class="hm-checkbox">
+            <label for="rm">RM</label>
+            <input type="checkbox" class="rm-checkbox">
+            <label for="wm">WM</label>
+            <input type="checkbox" class="wm-checkbox">
         `;
         meldergruppenContainer.appendChild(newGroup);
     });
@@ -258,6 +270,9 @@ async function showCreatePage() {
             const melderCount = parseInt(groupElement.querySelector(".melder-count").value, 10);
             const zdChecked = groupElement.querySelector(".zd-checkbox").checked;
             const smChecked = groupElement.querySelector(".sm-checkbox").checked;
+            const hmChecked = groupElement.querySelector(".hm-checkbox").checked;
+            const rmChecked = groupElement.querySelector(".rm-checkbox").checked;
+            const wmChecked = groupElement.querySelector(".wm-checkbox").checked;
             
             const meldepunkte = Array.from({ length: melderCount }, (_, i) => ({
                 id: i + 1,
@@ -270,6 +285,9 @@ async function showCreatePage() {
                 meldepunkte: meldepunkte,
                 zd: zdChecked,
                 sm: smChecked,
+                hm: hmChecked,
+                rm: rmChecked,
+                wm: wmChecked,
             });
         });
 
