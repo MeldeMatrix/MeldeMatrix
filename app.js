@@ -44,6 +44,9 @@ let selectedJahr = 2024;    // Default year
 let showOnlyOpen = false;   // Filter for open points
 let filterByQuarter = null; // To store which quarter to filter the display (via buttons)
 
+// Global state for the current search term
+let currentSearchTerm = '';
+
 // Event listener for login button click (already exists)
 document.getElementById("login-button").addEventListener("click", async () => {
     const email = document.getElementById("email").value;
@@ -102,7 +105,7 @@ document.getElementById("refresh-button").addEventListener("click", () => {
     const currentPage = content.innerHTML;
 
     if (currentPage.includes("Anlage Suchen")) {
-        showSearchPage();
+        showSearchPage(currentSearchTerm);
     } else if (currentPage.includes("Neue Anlage Erstellen")) {
         showCreatePage();
     } else if (currentPage.includes("Anlage:")) {
@@ -115,10 +118,10 @@ document.getElementById("refresh-button").addEventListener("click", () => {
 });
 
 // Search Page
-async function showSearchPage() {
+async function showSearchPage(searchTerm = '') {
     content.innerHTML = `
         <h2>Anlage Suchen</h2>
-        <input type="text" id="search-term" placeholder="Anlagen-Nr oder Name">
+        <input type="text" id="search-term" placeholder="Anlagen-Nr oder Name" value="${searchTerm}">
         <button id="perform-search" class="btn-class">Suchen</button>
         <div id="search-results"></div>
     `;
@@ -135,8 +138,8 @@ async function showSearchPage() {
 
     // Perform search logic
     async function performSearch() {
-        const searchTerm = document.getElementById("search-term").value.trim().toLowerCase();
-        if (!searchTerm) {
+        currentSearchTerm = document.getElementById("search-term").value.trim().toLowerCase();
+        if (!currentSearchTerm) {
             alert("Bitte einen Suchbegriff eingeben.");
             return;
         }
@@ -154,7 +157,7 @@ async function showSearchPage() {
                 const nameLower = data.name.toLowerCase();
                 const idLower = data.id.toLowerCase();
 
-                if (nameLower.includes(searchTerm) || idLower.includes(searchTerm)) {
+                if (nameLower.includes(currentSearchTerm) || idLower.includes(currentSearchTerm)) {
                     foundResults.push(data);
                 }
             });
@@ -185,6 +188,11 @@ async function showSearchPage() {
         } catch (error) {
             alert(`Fehler bei der Suche: ${error.message}`);
         }
+    }
+
+    // Perform search if there is a current search term
+    if (searchTerm) {
+        performSearch();
     }
 }
 
