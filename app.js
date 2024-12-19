@@ -431,7 +431,7 @@ async function showAnlagePruefung(anlageId) {
         </div>
 
     </div>
-        <div id="anlage-pruefung">
+        <div style="margin-top: 1.5em" id="anlage-pruefung">
             ${anlageData.meldergruppen
                 .filter(gruppe => gruppe.meldepunkte.length > 0) // Nur Meldegruppen mit Meldepunkten anzeigen
                 .map(
