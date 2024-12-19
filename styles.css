@@ -188,7 +188,8 @@ footer:hover {
 
 .additional-point label {
     flex: 1;
-    margin-right: 10px;
+    margin-right: 2px;
+    margin-left: 10px;
 }
 
 .additional-point .checkbox-group {
@@ -197,7 +198,7 @@ footer:hover {
 }
 
 .checkbox-group input {
-    padding-right: 10px;
+    margin-right: 10px;
 }
 
 .melder-checkbox {

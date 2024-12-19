@@ -437,7 +437,7 @@ async function showAnlagePruefung(anlageId) {
                 .map(
                     (gruppe) => ` 
                 <div>
-                    <h2>${gruppe.name} (${gruppe.type}) ${gruppe.zd ? "(ZD)" : ""}</h2>
+                    <h4 style="margin-top: 0.5em; margin-bottom: 0px">${gruppe.name} (${gruppe.type}) ${gruppe.zd ? "(ZD)" : ""}</h4>
                     <div class="melder-container">
                         ${gruppe.meldepunkte
                             .filter((melder) => {
@@ -464,7 +464,7 @@ async function showAnlagePruefung(anlageId) {
                                 (melder) => ` 
                             <span>
                                 ${melder.id}
-                                <input type="checkbox" class="melder-checkbox" data-group="${gruppe.name}" data-melder="${melder.id}" ${melder.geprüft[selectedJahr] ? 'checked' : ''}>
+                                <input style="margin-left:0px; margin-right: 10px" type="checkbox" class="melder-checkbox" data-group="${gruppe.name}" data-melder="${melder.id}" ${melder.geprüft[selectedJahr] ? 'checked' : ''}>
                             </span>
                         `).join('') }
                     </div>
