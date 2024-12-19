@@ -200,5 +200,5 @@ footer:hover {
 }
 
 .checkbox-group {
-    align-self: start;
+    align-items: flex-start;
 }
