@@ -410,7 +410,7 @@ async function showAnlagePruefung(anlageId) {
 	</div>
 
         <div id="additional-points" class="additional-points-container">
-            ${['Alarmierung', 'Steuerung', 'Erdschluss', 'Kurzschluss', 'Drahtbruch', 'FSD Heizung'].map(point => `
+            ${['Alarmierung:', 'Steuerung:', 'Erdschluss:', 'Kurzschluss:', 'Drahtbruch:', 'FSD Heizung:'].map(point => `
                 <div class="additional-point">
                     <label>${point}</label>
                     <div class="checkbox-group">
