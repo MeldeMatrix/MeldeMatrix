@@ -183,23 +183,18 @@ footer:hover {
 .additional-point {
     display: flex;
     align-items: center;
+    justify-content: flex-start;
 }
 
 .additional-point label {
-    flex: 1;
     margin-right: 10px;
 }
 
 .additional-point .checkbox-group {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
 }
 
 .checkbox-group label {
     margin-right: 5px;
-}
-
-.checkbox-group input {
-    margin-right: 15px;
 }
