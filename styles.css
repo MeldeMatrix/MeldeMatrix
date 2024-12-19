@@ -174,3 +174,16 @@ footer:hover {
 .scroll-button button:hover {
     background-color: #ee0000;
 }
+
+.additional-point {
+    display: flex;
+    align-items: center;
+}
+
+.additional-point label {
+    margin-right: 10px;
+}
+
+.additional-point input[type="checkbox"] {
+    margin-left: 5px;
+}
