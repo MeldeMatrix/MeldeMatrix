@@ -437,7 +437,7 @@ async function showAnlagePruefung(anlageId) {
                 .map(
                     (gruppe) => ` 
                 <div>
-                    <h3>${gruppe.name} (${gruppe.type}) ${gruppe.zd ? "(ZD)" : ""}</h3>
+                    <h2>${gruppe.name} (${gruppe.type}) ${gruppe.zd ? "(ZD)" : ""}</h2>
                     <div class="melder-container">
                         ${gruppe.meldepunkte
                             .filter((melder) => {

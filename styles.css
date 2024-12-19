@@ -196,10 +196,10 @@ footer:hover {
     align-items: start;
 }
 
-.checkbox-group label {
-    margin-right: 5px;
+.checkbox-group input {
+    padding-right: 10px;
 }
 
-.checkbox-group input {
-    margin-right: 5px;
+.melder-checkbox {
+    padding-right: 10px;
 }
