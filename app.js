@@ -212,7 +212,7 @@ async function showCreatePage() {
         </div>
         <div id="meldergruppen-container">
             <div class="meldergruppe">
-                <h3>Meldegruppe 1</h3>
+                <h4 style="margin-top: 1em; margin-bottom: 0px">Meldegruppe 1</h4>
                 <input type="number" class="melder-count" placeholder="Anzahl Melder" value="1">
                 <label for="zd">ZD</label>
                 <input type="checkbox" class="zd-checkbox">
@@ -246,7 +246,7 @@ async function showCreatePage() {
         const newGroup = document.createElement("div");
         newGroup.classList.add("meldergruppe");
         newGroup.innerHTML = `
-            <h3>Meldegruppe ${groupCount}</h3>
+            <h4 style="margin-top: 1em; margin-bottom: 0px">Meldegruppe ${groupCount}</h3>
             <input type="number" class="melder-count" placeholder="Anzahl Melder" value="1">
             <label for="zd">ZD</label>
             <input type="checkbox" class="zd-checkbox">
