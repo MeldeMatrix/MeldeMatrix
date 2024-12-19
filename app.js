@@ -449,7 +449,27 @@ async function showAnlagePruefung(anlageId) {
                 </div>
             `).join('') }
         </div>
+        <div id="additional-points">
+            <h3>Zusätzliche Punkte</h3>
+            ${['Alarmierung', 'Steuerung', 'Erdschluss', 'Kurzschluss', 'Drahtbruch', 'FSD Heizung'].map(point => `
+                <div>
+                    <h4>${point}</h4>
+                    ${anlageData.turnus === 'quarterly' ? `
+                        <label>Q1</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="Q1">
+                        <label>Q2</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="Q2">
+                        <label>Q3</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="Q3">
+                        <label>Q4</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="Q4">
+                    ` : anlageData.turnus === 'semi-annual' ? `
+                        <label>H1</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="Q1">
+                        <label>H2</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="Q2">
+                    ` : `
+                        <label>Jährlich</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="annual">
+                    `}
+                </div>
+            `).join('')}
+        </div>
     `;
+    
 
 	// Event listener für die Änderungen der Textfelder
     	document.getElementById("text-field-1").addEventListener("change", async (e) => {
@@ -583,6 +603,54 @@ document.querySelectorAll(".melder-checkbox").forEach((checkbox) => {
         }
     });
 });
+
+    // Handle additional points checkbox toggling
+    document.querySelectorAll(".additional-checkbox").forEach((checkbox) => {
+        checkbox.addEventListener("change", async (e) => {
+            const point = e.target.getAttribute("data-point");
+            const quarter = e.target.getAttribute("data-quarter");
+            const checked = e.target.checked;
+
+            if (!selectedQuartal && anlageData.turnus !== 'annual') {
+                alert("Bitte wählen Sie zuerst das Quartal aus!");
+                e.target.checked = !checked; // Rückgängig machen, falls kein Quartal ausgewählt ist
+                return;
+            }
+
+            if (!selectedJahr) {
+                alert("Bitte wählen Sie zuerst das Jahr aus!");
+                e.target.checked = !checked; // Rückgängig machen, falls kein Jahr ausgewählt ist
+                return;
+            }
+
+            // Lokales Update der Prüfungsdaten für den Punkt
+            const updatedPoints = { ...anlageData.additionalPoints }; // Kopie der bestehenden Prüfungen
+
+            if (!updatedPoints[point]) {
+                updatedPoints[point] = {};
+            }
+
+            if (checked) {
+                updatedPoints[point][selectedJahr] = quarter; // Das Quartal wird gesetzt
+            } else {
+                delete updatedPoints[point][selectedJahr]; // Falls die Checkbox deaktiviert wird, entfernen wir das Quartal
+            }
+
+            anlageData.additionalPoints = updatedPoints; // Prüfungen des Punktes aktualisieren
+
+            try {
+                // Nur die geänderten Punkte synchronisieren
+                await setDoc(doc(db, "anlagen", anlageId), {
+                    additionalPoints: anlageData.additionalPoints, // Aktualisierte Punkte
+                }, { merge: true }); // Nur die geänderten Felder speichern
+
+                console.log(`Punkt ${point} erfolgreich aktualisiert.`);
+            } catch (error) {
+                console.error("Fehler beim Speichern:", error);
+                alert("Fehler beim Aktualisieren des Punktes.");
+            }
+        });
+    });
 }
 
 
