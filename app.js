@@ -221,7 +221,14 @@ async function showCreatePage() {
                     <option value="RM">RM</option>
                     <option value="HM">HM</option>
                     <option value="WM">WM</option>
-                    <option value="SM">SM</option>
+                    <option value="LRM">LRM</option>
+                    <option value="RAS">RAS</option>
+                    <option value="FM">FM</option>
+                    <option value="WLK">WLK</option>
+                    <option value="FSE">FSE</option>
+                    <option value="Esti">Esti</option>
+                    <option value="SpK">SpK</option>
+                    <option value="LöA">LöA</option>
                 </select>
             </div>
         </div>
@@ -248,7 +255,14 @@ async function showCreatePage() {
                 <option value="RM">RM</option>
                 <option value="HM">HM</option>
                 <option value="WM">WM</option>
-                <option value="SM">SM</option>
+                <option value="LRM">LRM</option>
+                <option value="RAS">RAS</option>
+                <option value="FM">FM</option>
+                <option value="WLK">WLK</option>
+                <option value="FSE">FSE</option>
+                <option value="Esti">Esti</option>
+                <option value="SpK">SpK</option>
+                <option value="LöA">LöA</option>
             </select>
         `;
         meldergruppenContainer.appendChild(newGroup);
@@ -272,7 +286,6 @@ async function showCreatePage() {
             const meldepunkte = Array.from({ length: melderCount }, (_, i) => ({
                 id: i + 1,
                 geprüft: {},
-                quartal: null,
             }));
 
             meldergruppen.push({
@@ -423,7 +436,7 @@ async function showAnlagePruefung(anlageId) {
                             <label>H1</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="H1" ${anlageData.additionalPoints?.[point]?.[selectedJahr]?.includes('H1') ? 'checked' : ''}>
                             <label>H2</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="H2" ${anlageData.additionalPoints?.[point]?.[selectedJahr]?.includes('H2') ? 'checked' : ''}>
                         ` : `
-                            <label>Jährlich</label><input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="annual" ${anlageData.additionalPoints?.[point]?.[selectedJahr]?.includes('annual') ? 'checked' : ''}>
+                            <input type="checkbox" class="additional-checkbox" data-point="${point}" data-quarter="annual" ${anlageData.additionalPoints?.[point]?.[selectedJahr]?.includes('annual') ? 'checked' : ''}>
                         `}
                     </div>
                 </div>
