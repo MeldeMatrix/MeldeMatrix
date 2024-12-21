@@ -1,3 +1,7 @@
+// Load environment variables from .env file
+import { config } from 'dotenv';
+config();
+
 // Firebase SDK Imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
 import {
@@ -19,12 +23,12 @@ import {
 
 // Firebase Configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyAN2ZXKYzFoJ0o__qAyVxubjit3wrlEGlo",
-    authDomain: "meldepunktpro.firebaseapp.com",
-    projectId: "meldepunktpro",
-    storageBucket: "meldepunktpro.appspot.com",
-    messagingSenderId: "1084931878712",
-    appId: "1:1084931878712:web:bfa5e31c03fad5e1015bcd"
+    apiKey: process.env.FIREBASE_API_KEY,
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.FIREBASE_APP_ID
 };
 
 // Initialize Firebase
